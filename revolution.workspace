@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="quake3sdk workspace">
+		<Project filename="cgame/cgame.cbp" />
+		<Project filename="game/game.cbp" />
+		<Project filename="q3_ui/q3_ui.cbp" />
+		<Project filename="ui/ui.cbp" active="1" />
+	</Workspace>
+</CodeBlocks_workspace_file>

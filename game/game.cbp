@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="game" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="../Release/qagamex86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="./Release" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-mcpu=pentiumpro -D_M_IX86=600" />
+					<Add option="-Wall" />
+					<Add option="-DGLOBALRANK" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x20000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="../Debug/qagamex86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="./Debug" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-mcpu=pentium -D_M_IX86=500" />
+					<Add option="-DBUILDING_REF_GL" />
+					<Add option="-DDEBUG" />
+					<Add option="-DGLOBALRANK" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x20000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug Alpha">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-DC_ONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x20000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Release Alpha">
+				<Option type="4" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-DC_ONLY" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x20000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Release TA">
+				<Option output="../Release_TA/qagamex86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release_TA" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-mcpu=pentiumpro -D_M_IX86=600" />
+					<Add option="-Wall" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-DMISSIONPACK" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x20000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug TA">
+				<Option output="../Debug_TA/qagamex86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug_TA" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-mcpu=pentium -D_M_IX86=500" />
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-DBUILDING_REF_GL" />
+					<Add option="-DDEBUG" />
+					<Add option="-DMISSIONPACK" />
+					<Add option="-DQAGAME" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x20000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="winmm" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="ai_chat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_cmd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_dmnet.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_dmq3.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_team.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_vcmd.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="bg_lib.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Debug Alpha" />
+			<Option target="Win32 Release Alpha" />
+		</Unit>
+		<Unit filename="bg_misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="bg_pmove.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="bg_slidemove.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_active.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_arenas.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_bot.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_client.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_cmds.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_combat.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_items.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_mem.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_misc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_missile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_mover.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_session.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_spawn.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_svcmds.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_syscalls.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_target.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_team.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_trigger.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_utils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="g_weapon.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="game.def">
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+			<Option target="Win32 Debug Alpha" />
+			<Option target="Win32 Release Alpha" />
+		</Unit>
+		<Unit filename="q_math.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="q_shared.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ai_chat.h" />
+		<Unit filename="ai_cmd.h" />
+		<Unit filename="ai_dmnet.h" />
+		<Unit filename="ai_dmq3.h" />
+		<Unit filename="ai_main.h" />
+		<Unit filename="ai_team.h" />
+		<Unit filename="ai_vcmd.h" />
+		<Unit filename="be_aas.h" />
+		<Unit filename="be_ai_char.h" />
+		<Unit filename="be_ai_chat.h" />
+		<Unit filename="be_ai_gen.h" />
+		<Unit filename="be_ai_goal.h" />
+		<Unit filename="be_ai_move.h" />
+		<Unit filename="be_ai_weap.h" />
+		<Unit filename="be_ea.h" />
+		<Unit filename="bg_local.h" />
+		<Unit filename="bg_public.h" />
+		<Unit filename="botlib.h" />
+		<Unit filename="chars.h" />
+		<Unit filename="g_local.h" />
+		<Unit filename="g_public.h" />
+		<Unit filename="g_team.h" />
+		<Unit filename="inv.h" />
+		<Unit filename="match.h" />
+		<Unit filename="q_shared.h" />
+		<Unit filename="surfaceflags.h" />
+		<Unit filename="syn.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

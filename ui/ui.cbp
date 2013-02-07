@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="ui" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="../Release/uix86_new" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DUI_EXPORTS" />
+					<Add option="-mcpu=pentiumpro -D_M_IX86=600" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="../Debug/uix86_new" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DUI_EXPORTS" />
+					<Add option="-mcpu=pentium -D_M_IX86=500" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Release TA">
+				<Option output="../Release_TA/uix86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release_TA" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-mcpu=pentiumpro -D_M_IX86=600" />
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DUI_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug TA">
+				<Option output="../Debug_TA/uix86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug_TA" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-mcpu=pentium -D_M_IX86=500" />
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DUI_EXPORTS" />
+					<Add option="-DMISSIONPACK" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+				</Linker>
+			</Target>
+			<Target title="Win32 vector">
+				<Option output="../Release_TA/uix86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="ui___Win32_vector" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-mcpu=pentiumpro -D_M_IX86=600" />
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DUI_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="../game/bg_lib.c">
+			<Option compilerVar="CC" />
+			<Option target="&lt;{~None~}&gt;" />
+		</Unit>
+		<Unit filename="../game/bg_misc.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../game/q_math.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../game/q_shared.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui.def">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_atoms.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_gameinfo.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_main.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_players.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_shared.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_syscalls.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_util.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../game/bg_public.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="keycodes.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../../ui/menudef.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../game/q_shared.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../game/surfaceflags.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="../cgame/tr_types.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_local.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_public.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Unit filename="ui_shared.h">
+			<Option target="Win32 Release TA" />
+			<Option target="Win32 Debug TA" />
+			<Option target="Win32 vector" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

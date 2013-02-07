@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="q3_ui" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Win32 Release">
+				<Option output="../Release/uix86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DQ3_UI_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug">
+				<Option output="../Debug/uix86" prefix_auto="1" extension_auto="1" />
+				<Option object_output="q3_ui___Win32_Debug" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DQ3_UI_EXPORTS" />
+					<Add option="-mcpu=pentium -D_M_IX86=500" />
+					<Add option="-DUI_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+					<Add option="-Map Debug/uix86.map.map" />
+					<Add option="--implib Debug/uix86.lib" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library='&quot;Debug/uix86' />
+				</Linker>
+			</Target>
+			<Target title="Win32 Release TA">
+				<Option output="../Release_TA/uix86_old" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Release_TA" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-O2" />
+					<Add option="-DWIN32" />
+					<Add option="-DNDEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DQ3_UI_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="--implib Release_TA/q3_ui.lib" />
+					<Add library="kernel32" />
+					<Add library="user32" />
+					<Add library="gdi32" />
+					<Add library="winspool" />
+					<Add library="comdlg32" />
+					<Add library="advapi32" />
+					<Add library="shell32" />
+					<Add library="ole32" />
+					<Add library="oleaut32" />
+					<Add library="uuid" />
+					<Add library="odbc32" />
+					<Add library="odbccp32" />
+					<Add library='&quot;Release_TA/q3_ui' />
+				</Linker>
+			</Target>
+			<Target title="Win32 Debug TA">
+				<Option output="../Debug_TA/uix86_old" prefix_auto="1" extension_auto="1" />
+				<Option object_output="Debug_TA" />
+				<Option type="3" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-mcpu=pentium -D_M_IX86=500" />
+					<Add option="-W" />
+					<Add option="-fexceptions" />
+					<Add option="-g" />
+					<Add option="-DWIN32" />
+					<Add option="-D_DEBUG" />
+					<Add option="-D_WINDOWS" />
+					<Add option="-D_MBCS" />
+					<Add option="-D_USRDLL" />
+					<Add option="-DUI_EXPORTS" />
+				</Compiler>
+				<Linker>
+					<Add option="--image-base 0x40000000" />
+					<Add option="-Map Debug/uix86.map.map" />
+					<Add option="--implib Debug/uix86.lib" />
+					<Add option="-Map Debug_TA/uix86.map.map" />
+					<Add option="--implib Debug_TA/uix86.lib" />
+					<Add library='&quot;Debug/uix86' />
+					<Add library='&quot;Debug_TA/uix86' />
+				</Linker>
+			</Target>
+		</Build>
+		<Unit filename="../game/bg_misc.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="../game/q_math.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="../game/q_shared.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui.def">
+			<Option target="Win32 Release" />
+		</Unit>
+		<Unit filename="ui_addbots.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_atoms.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_cdkey.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_cinematics.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_confirm.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_connect.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_controls2.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_credits.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_demo2.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_display.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_gameinfo.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_ingame.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_loadconfig.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ui_main.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_menu.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_mfield.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_mods.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_network.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_options.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_playermodel.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_players.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_playersettings.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_preferences.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_qmenu.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_removebots.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_saveconfig.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ui_serverinfo.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_servers2.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_setup.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_sound.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_sparena.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_specifyserver.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_splevel.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_sppostgame.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_spreset.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_spskill.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_startserver.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="../ui/ui_syscalls.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="ui_team.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_teamorders.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_video.c">
+			<Option compilerVar="CC" />
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="keycodes.h">
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="../game/q_shared.h">
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_local.h">
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Unit filename="ui_public.h">
+			<Option target="Win32 Release" />
+			<Option target="Win32 Debug" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
