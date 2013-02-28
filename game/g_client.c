@@ -753,6 +753,80 @@ static void ClientCleanName( const char *in, char *out, int outSize ) {
 	} */
 }
 
+static void StripFade ( const char *in, char *out, int outSize ) {
+	int		len;
+	char	ch;
+	char	*p;
+	qboolean wasFade = qfalse;
+
+	//qboolean	parseBadNames = qtrue;
+
+	//save room for trailing null byte
+	outSize--;
+
+	len = 0;
+	p = out;
+	*p = 0;
+
+	while( 1 ) {
+		ch = *in++;
+		if( !ch ) {
+			break;
+		}
+
+		if ( wasFade ) {
+			wasFade = qfalse;
+			if ( *in == ',' ) {
+				continue;
+			}
+		}
+
+		// check colors
+		if( ch == Q_COLOR_ESCAPE ) {
+			// solo trailing carat is not a color prefix
+			if( !*in ) {
+				break;
+			}
+
+			// make sure room in dest for both chars
+			if( len > outSize - 2 ) {
+				break;
+			}
+
+			*out++ = ch;
+			*out++ = *in++;
+			len += 2;
+			
+			//
+			if( !*in ) {
+				break;
+			}
+
+			if ( (*in == ',' || *in == ':') ) {
+				*in++;//Go forward
+				if ( !*in ) {
+					break;
+				}
+				if (*in != Q_COLOR_ESCAPE ) {//Check for another color
+					*in--;//Go back cuz it's not fading.
+				} else {
+					wasFade = qtrue;
+				}
+			}
+			continue;
+		}
+
+		if( len > outSize - 1 ) {
+			break;
+		}
+
+		*out++ = ch;
+		len++;
+			
+	}
+	*out = 0;
+}
+
 
 /*
 ===========
@@ -849,6 +923,7 @@ void ClientUserinfoChanged( int clientNum ) {
 	Q_strncpyz ( oldname, client->pers.netname, sizeof( oldname ) );
 	s = Info_ValueForKey (userinfo, "name");
 	ClientCleanName( s, client->pers.netname, sizeof(client->pers.netname) );
+	StripFade(client->pers.netname, client->pers.altnetname, sizeof(client->pers.altnetname));
 
 	if ( !sv_allowUnnamed.integer ) { 
 		if ( Q_stricmp(client->pers.netname, "UnnamedPlayer") == 0 ) {

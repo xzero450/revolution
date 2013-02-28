@@ -307,7 +307,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 
 	// draw the drop shadow
 	nameLength[0] = nameLength[1] = 0;
-	if (shadow) {
+	if (shadow || cg_fontFade.integer ) {
 		color[0] = color[1] = color[2] = 0;
 		color[3] = setColor[3];
 		trap_R_SetColor( color );
@@ -317,23 +317,23 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		while ( *s && cnt < maxChars) {
 			if ( Q_IsColorString( s ) ) {
 				s += 2;
-				cnt += 2;
+				//cnt += 2;
 				if((*s == ':') && Q_IsColorString( s+1 ))
 				{
 					s++;
-					cnt++;
+					//cnt++;
 				} 
 				else if((*s  == ',') && Q_IsColorString( s+1 ) && !isStaticFade )
 				{
 					//This means we'll be fading across the name.
 					isStaticFade = qtrue;
 					s += 3;
-					cnt += 3;
+					//cnt += 3;
 					if((*s  == ',') && Q_IsColorString( s+1 ) )
 					{
 						//This means we'll be fading across the name.
 						s += 3;
-						cnt += 3;
+						//cnt += 3;
 					}
 				}
 				continue;
@@ -352,7 +352,8 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 			}
 			if ( superhud && (hud[superhud].offset[0] || hud[superhud].offset[1]) ) {
 				CG_DrawChar( xx + hud[superhud].offset[0], y + hud[superhud].offset[1], charWidth, charHeight, *s, altFont, superhud );
-			} else {
+			//} else {
+			} else if ( shadow ) {
 				CG_DrawChar( xx + ch_shadowOffset.integer, y + ch_shadowOffset.integer, charWidth, charHeight, *s, altFont, superhud );
 			}
 			cnt++;
@@ -381,7 +382,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 			memcpy(fadeColors[cnt_colors], g_color_table[ColorIndex(*(s + 1))], sizeof(vec4_t));
 			cnt_colors++;
 			s += 2;
-			cnt += 2;
+			//cnt += 2;
 
 //			if ( (*s == ':') && Q_IsColorString( s+1 ) )
 			if((*s == ':') && (*(s + 1) == '^'))
@@ -390,7 +391,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 				memcpy(fadeColors[cnt_colors], g_color_table[ColorIndex(*(s + 2))], sizeof(vec4_t));
 				cnt_colors++;
 				s += 3;
-				cnt += 3;
+				//cnt += 3;
 				//cnt++; //for continue
 				continue;
 			}
@@ -407,7 +408,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 					//
 					cnt_colors++;
 					s += 3;
-					cnt += 3;
+					//cnt += 3;
 					if((*s  == ',') && (*(s + 1) == '^') && cnt_colors < 3  )
 					{
 						//This means we'll be fading across the name.
@@ -428,7 +429,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 							//
 							cnt_colors++;
 							s += 3;
-							cnt += 3;
+							//cnt += 3;
 						}
 					}
 					continue;
@@ -663,6 +664,17 @@ int CG_DrawStrlen( const char *str ) {
 	while ( *s ) {
 		if ( Q_IsColorString( s ) ) {
 			s += 2;
+			//Shorten the length of the name for fontFades
+		} else if((*s == ':') && Q_IsColorString( s+1 )) {
+					s += 3;
+		} else if((*s  == ',') && Q_IsColorString( s+1 ) ) {
+				//This means we'll be fading across the name.
+				s += 3;
+				if((*s  == ',') && Q_IsColorString( s+1 ) )
+				{
+					//This means we'll be fading across the name.
+					s += 3;
+				}
 		} else {
 			count++;
 			s++;

@@ -1257,6 +1257,22 @@ static void CG_RemoveChatEscapeChar( char *text ) {
 
 	l = 0;
 	for ( i = 0; text[i]; i++ ) {
+		//Added
+		/*if ( text[i] == '^' ) {
+			if ( (text[i+2] == ',' || text[i+2] == ':') && text[i+3] == '^' ) {
+				if ( text[i+5] == ',' && text[i+6] == '^' ) {
+					i += 5;
+				} else {
+					i += 3;
+				}
+			}
+		}
+
+		if ( !text[i] ) {
+			break;
+		}*/
+		//Added
+
 		if (text[i] == '\x19')
 			continue;
 		text[l++] = text[i];
