@@ -568,6 +568,45 @@ static void CG_Speedometer_f ( void ) {
 #endif
 }
 
+static void CG_JumpSpeeds_f ( void ) {
+	int ac;//, i;
+	char st[MAX_CVAR_VALUE_STRING], *tmp;
+	char d[12], y[12], a[12];
+
+	ac = trap_Argc();
+	tmp = ch_JumpSpeeds.string;
+	CG_ExtractToken(&tmp, d);
+	CG_ExtractToken(&tmp, y);
+	CG_ExtractToken(&tmp, a);
+
+	switch(ac)
+	{
+		case 1:
+			trap_SendConsoleCommand("ch_JumpSpeeds");
+			return;
+
+		case 2:
+			trap_Argv(1, d, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s", d, y, a);
+			break;
+
+		case 3:
+			trap_Argv(1, d, 12);
+			trap_Argv(2, y, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s", d, y, a);
+			break;
+
+		case 4:
+			trap_Argv(1, d, 12);
+			trap_Argv(2, y, 12);
+			trap_Argv(3, a, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s", d, y, a);
+			break;
+	}
+
+	trap_Cvar_Set("ch_JumpSpeeds", st);
+}
+
 static void CG_OBDetector_f ( void ) {
 	int ac;//, i;
 	char st[MAX_CVAR_VALUE_STRING], *tmp;
@@ -614,6 +653,64 @@ static void CG_OBDetector_f ( void ) {
 	}
 
 	trap_Cvar_Set("ch_OBDetector", st);
+}
+
+static void CG_StrafeHUD_f ( void ) {
+	int ac;//, i;
+	char st[MAX_CVAR_VALUE_STRING], *tmp;
+	char d[12], y[12], w[12], h[12], a[12];
+
+	ac = trap_Argc();
+	tmp = ch_StrafeHUD.string;
+	CG_ExtractToken(&tmp, d);
+	CG_ExtractToken(&tmp, y);
+	CG_ExtractToken(&tmp, w);
+	CG_ExtractToken(&tmp, h);
+	CG_ExtractToken(&tmp, a);
+
+	switch(ac)
+	{
+		case 1:
+			trap_SendConsoleCommand("ch_StrafeHUD");
+			return;
+
+		case 2:
+			trap_Argv(1, d, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s %s %s", d, y, w, h, a);
+			break;
+
+		case 3:
+			trap_Argv(1, d, 12);
+			trap_Argv(2, y, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s %s %s", d, y, w, h, a);
+			break;
+
+		case 4:
+			trap_Argv(1, d, 12);
+			trap_Argv(2, y, 12);
+			trap_Argv(3, w, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s %s %s", d, y, w, h, a);
+			break;
+
+		case 5:
+			trap_Argv(1, d, 12);
+			trap_Argv(2, y, 12);
+			trap_Argv(3, w, 12);
+			trap_Argv(4, h, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s %s %s", d, y, w, h, a);
+			break;
+
+		case 6:
+			trap_Argv(1, d, 12);
+			trap_Argv(2, y, 12);
+			trap_Argv(3, w, 12);
+			trap_Argv(4, h, 12);
+			trap_Argv(5, a, 12);
+			Com_sprintf(st, MAX_CVAR_VALUE_STRING, "%s %s %s %s %s", d, y, w, h, a);
+			break;
+	}
+
+	trap_Cvar_Set("ch_StrafeHUD", st);
 }
 
 static void CG_Weaponsidebar_f ( void ) {
@@ -1933,9 +2030,15 @@ static consoleCommand_t	commands[] = {
 	{ "cg_Speedometer", CG_Speedometer_f },
 	{ "cg_drawUPS", CG_Speedometer_f },
 	{ "speedometer", CG_Speedometer_f },
+	{ "cg_drawJumpSpeeds", CG_JumpSpeeds_f },
+	{ "cg_JumpSpeeds", CG_JumpSpeeds_f },
+	{ "jumpspeeds", CG_JumpSpeeds_f },
 	{ "cg_OBDetector", CG_OBDetector_f },
 	{ "cg_drawOBDetector", CG_OBDetector_f },
 	{ "obdetector", CG_OBDetector_f },
+	{ "cg_drawStrafeHUD", CG_StrafeHUD_f },
+	{ "cg_StrafeHUD", CG_StrafeHUD_f },
+	{ "strafehud", CG_StrafeHUD_f },
 	{ "cg_drawWeaponSideBar", CG_Weaponsidebar_f },
 	{ "cg_WeaponSideBar", CG_Weaponsidebar_f },
 	{ "weaponsidebar", CG_Weaponsidebar_f },
