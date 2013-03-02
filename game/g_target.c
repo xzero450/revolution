@@ -491,3 +491,96 @@ void SP_target_location( gentity_t *self ){
 	G_SetOrigin( self, self->s.origin );
 }
 
+void G_DefragStartTimer(gentity_t *ent, gentity_t *other, gentity_t *activator)
+{
+	int i;
+	int clientfound = -1;
+
+	if(!activator->client)
+		return;
+
+	//find the client
+	for(i = 0; i < MAX_CLIENTS; i++)
+	{
+		if((int)activator->client == (int)&level.clients[i])
+		{
+			clientfound = i;
+			break;
+		}
+	}
+
+	if(clientfound == -1)
+	{
+		G_Printf("couldn't find client\n");
+		return;
+	}
+
+	level.player_defragstarttime[clientfound] = level.time;
+
+//	G_Printf("START TIMER!\n");
+}
+
+void G_DefragStopTimer(gentity_t *ent, gentity_t *other, gentity_t *activator)
+{
+	int i;
+	int clientfound = -1;
+	int timesec, timemin, timemsec;
+
+	if(!activator->client)
+		return;
+
+	//find the client
+	for(i = 0; i < MAX_CLIENTS; i++)
+	{
+		if((int)activator->client == (int)&level.clients[i])
+		{
+			clientfound = i;
+			break;
+		}
+	}
+
+	if(clientfound == -1)
+	{
+		G_Printf("couldn't find client\n");
+		return;
+	}
+
+	if(!level.player_defragstarttime[clientfound])
+		return;
+
+	timemsec = level.time - level.player_defragstarttime[clientfound];
+	timesec = timemsec / 1000;
+	timemsec -= timesec * 1000;
+	if(timesec > 60)
+	{
+		timemin = timesec / 60;
+		timesec -= timemin * 60;
+		PrintMsg(NULL, "%s" S_COLOR_CYAN " reached the finish line in %i:%i.%i\n", activator->client->pers.altnetname, timemin, timesec, timemsec);
+	}
+	else
+		PrintMsg(NULL, "%s" S_COLOR_CYAN " reached the finish line in %i.%i\n", activator->client->pers.altnetname, timesec, timemsec);
+
+	level.player_defragstarttime[clientfound] = 0;			//reset time
+
+//	G_Printf("STOP TIMER! %s\n", activator->client->pers.altnetname);
+}
+
+void G_DefragCheckpoint(gentity_t *ent, gentity_t *other, gentity_t *activator)
+{
+//	G_Printf("CHECKPOINT!\n");
+}
+
+void SP_target_startTimer(gentity_t *ent)
+{
+	ent->use = G_DefragStartTimer;
+}
+
+void SP_target_stopTimer(gentity_t *ent)
+{
+	ent->use = G_DefragStopTimer;
+}
+
+void SP_target_checkpoint(gentity_t *ent)
+{
+	ent->use = G_DefragCheckpoint;
+}

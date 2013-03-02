@@ -569,6 +569,7 @@ typedef struct {
 	int			frameStartTime;
 //unlagged - backward reconciliation #4
 	vec3_t		playerLastKnownGood[MAX_CLIENTS][2];//Monkk (keep a history of lkg's
+	int			player_defragstarttime[MAX_CLIENTS];
 	byte		match_timeout;	// Time out state of the match
 	int			match_timein;	// time for auto-time in
 	int			match_interval; // stop time out from spamming the server
