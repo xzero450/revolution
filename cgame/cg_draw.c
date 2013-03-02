@@ -3160,6 +3160,112 @@ void CG_DrawSpeedometer(qboolean draw_speed, qboolean draw_maxspeed, int x, int 
 	}
 }
 
+/*
+=================
+CG_DrawJumpSpeeds
+Spike's Jump Speed Readout
+=================
+*/
+
+//----
+float pspeeds[12];
+int num_pspeeds = 0;
+
+void CG_DrawJumpSpeeds(int y, float alpha)
+{
+	float speed, dzh;
+	char buffer[74];		//holds entire set of jump speeds
+	int width;
+	char text[8];
+	int digits, val;
+	char *buf;
+	vec4_t color = {1.0f, 1.0f, 1.0f};
+	int i, w;
+
+	color[3] = alpha;
+
+	speed = 1.0f / Q_rsqrt(cg.snap->ps.velocity[0] * cg.snap->ps.velocity[0] +
+					cg.snap->ps.velocity[1] * cg.snap->ps.velocity[1]);
+
+	if(cg.ongroundevent)
+	{
+		//on the ground
+		cg.onground = qtrue;
+		cg.ongroundevent = qfalse;
+		if(num_pspeeds >= 12)
+		{
+			//shift the array of speeds to the left
+			for(i = 0; i < 11; i++)
+				pspeeds[i] = pspeeds[i + 1];
+				pspeeds[11] = speed;
+		}
+		else
+		{
+			pspeeds[num_pspeeds] = speed;
+			num_pspeeds++;
+		}
+	}
+	else if(cg.onground)
+	{
+		if(speed < 1e-4f && speed > -1e-4f)
+		{
+			//clear jumps
+			cg.clearspeeds = qtrue;
+		}
+
+		if(cg.leftground)
+		{
+			cg.leftground = qfalse;
+			cg.onground = qfalse;		//just left the ground
+			if(cg.clearspeeds)
+			{
+				num_pspeeds = 0;
+				cg.clearspeeds = qfalse;
+			}
+		}
+	}
+	else if(cg.clearspeeds)
+	{
+		num_pspeeds = 0;
+		cg.clearspeeds = qfalse;
+	}
+
+	//this is just awesome
+	buffer[0] = 'J'; buffer[1] = 'u'; buffer[2] = 'm'; buffer[3] = 'p';
+	buffer[4] = ' '; buffer[5] = 'S'; buffer[6] = 'p'; buffer[7] = 'e';
+	buffer[8] = 'e'; buffer[9] = 'd'; buffer[10] = 's'; buffer[11] = ':';
+	buffer[12] = ' '; buffer[13] = '\0';
+
+	for(i = 0; i < num_pspeeds; i++)
+	{
+		//convert the float into a string
+		val = pspeeds[i];
+		w = 5;
+		digits = 0;
+		do
+		{
+			text[digits++] = '0' + val % 10;
+			val /= 10;
+		} while(val);
+
+		buf = (char *)((int)buffer + 13 + (i * 5));
+
+		while(digits < w)
+		{
+			*buf++ = ' ';
+			w--;
+		}
+
+		while(digits--)
+			*buf++ = text[digits];
+	}
+
+	buffer[13 + (num_pspeeds * 5)] = '\0';
+	width = CG_DrawStrlen(buffer) * TINYCHAR_WIDTH;
+
+	CG_DrawStringExt(5, y, buffer, color, qfalse, qtrue, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, 0, 0, 0);
+}
+
 //-------------------------------------
 // OB STUFF
 //-------------------------------------
@@ -3881,7 +3987,7 @@ void CG_DrawOBs(int x, int y, float alpha)
 {
 	vec3_t start, end;
 	trace_t trace;
-	float distz1, distz2, delta;
+	float distz1 = 0.0f, distz2 = 0.0f, delta;
 	int num_tbl, num_start, width, i;
 	ob_info_t *obptr;
 	char *str;
@@ -4077,6 +4183,315 @@ void CG_DrawOBs(int x, int y, float alpha)
 	}
 }
 
+static void PutPixel(float x, float y)
+{
+	if(x > 0 && x < SCREEN_WIDTH && y > 0 && y < SCREEN_HEIGHT)
+		CG_DrawPic(x, y, 1, 1, cgs.media.whiteShader);
+}
+
+static void DrawLine(float x1, float y1, float x2, float y2, vec4_t color)
+{
+	float len, stepx, stepy;
+	float i;
+
+	trap_R_SetColor(color); 
+	len = (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1);
+	len = sqrt(len);
+	stepx = (x2 - x1) / len;
+	stepy = (y2 - y1) / len;
+	for (i = 0; i < len; i++)
+	{
+		PutPixel(x1, y1);
+		x1 += stepx;
+		y1 += stepy;
+	}
+
+	trap_R_SetColor(NULL);
+}
+
+#define SCREEN_CENTER_X ((SCREEN_WIDTH / 2) - 1)
+#define SCREEN_CENTER_Y ((SCREEN_HEIGHT / 2) - 1)
+#define CGAZ3_ANG 20
+
+void CG_DrawStrafeHUD(int yi, int wi, int hi, float alpha)
+{
+	float vel_angle;	//absolute velocity angle
+	float vel_relang;	//relative velocity angle to viewangles[1]
+	vec_t vel_size;
+	vec4_t color;
+	float accel, scale;
+	float per_angle;
+	float y, w, h, tmp1, tmp2;
+	float accel_angle;
+	float ang;			//only for drawing
+	float forwardk, rightk;
+	playerState_t *ps;
+
+	ps = &cg.predictedPlayerState;
+
+	if(ps->persistant[PERS_TEAM] == TEAM_SPECTATOR)
+		return;
+
+	color[3] = alpha;
+
+	y = (float)yi;
+	w = (float)wi;
+	h = (float)hi;
+
+	vel_size = sqrt(ps->velocity[0] * ps->velocity[0] + ps->velocity[1] * ps->velocity[1]);
+	accel = ps->speed * pmove_msec.value / 1000;
+
+	//based on PM_CmdScale from bg_pmove.c
+	if(ps->powerups[PW_HASTE])
+		scale = 1.3f;
+	else
+		scale = 1.0f;
+
+	per_angle = (ps->speed - accel) / vel_size * scale;
+	if(per_angle < 1.0f)
+		per_angle = RAD2DEG(acos(per_angle));
+	else
+		per_angle = 0.0f;
+
+	vel_angle = AngleNormalize180(RAD2DEG(atan2(ps->velocity[1], ps->velocity[0])));
+	vel_relang = AngleNormalize180(ps->viewangles[YAW] - vel_angle);
+
+	//type 1
+	VectorCopy(colorBlue, color);
+	CG_FillRect(SCREEN_CENTER_X - w / 2, y, w, h, color);
+	CG_FillRect(SCREEN_CENTER_X - w / 2, y, 1, h, colorWhite);
+	CG_FillRect(SCREEN_CENTER_X - w / 4, y, 1, h, colorWhite);
+	CG_FillRect(SCREEN_CENTER_X        , y, 1, h, colorWhite);
+	CG_FillRect(SCREEN_CENTER_X + w / 4, y, 1, h, colorWhite);
+	CG_FillRect(SCREEN_CENTER_X + w / 2, y, 1, h, colorWhite);
+
+	if(vel_size < ps->speed * scale)
+		return;
+
+	//velocity
+	if(vel_relang > -90.0f && vel_relang < 90.0f)
+		CG_FillRect(SCREEN_CENTER_X + w * vel_relang / 180.0f, y, 1.0f, h, colorOrange);
+
+	//left/right perfect strafe
+	if(vel_relang > 0.0f)
+	{
+		ang = AngleNormalize180(vel_relang - per_angle);
+		if (ang > -90.0f && ang < 90.0f)
+		{
+			tmp1 = SCREEN_CENTER_X + w * ang / 180.0f;
+			CG_FillRect(tmp1, y, 1, h, colorGreen);
+//			VectorCopy(colorGreen, color);
+//			color[1] = 0.6f;
+//			tmp2 = SCREEN_CENTER_X + w * vel_relang / 180;
+//			CG_FillRect(tmp2, y, tmp1 - tmp2, h, color);
+		}
+	}
+	else
+	{
+		ang = AngleNormalize180(vel_relang + per_angle);
+		if(ang > -90 && ang < 90)
+		{
+			tmp1 = SCREEN_CENTER_X + w * ang / 180;
+			CG_FillRect(tmp1, y, 1, h, colorGreen);
+//			VectorCopy(colorGreen, color);
+//			color[1] = 0.6f;
+//			tmp2 = SCREEN_CENTER_X + w * vel_relang / 180;
+//			CG_FillRect(tmp1, y, tmp2 - tmp1, h, color);
+		}
+	}
+
+	return;
+
+/*	//type 2
+	vel_relang = DEG2RAD(vel_relang);
+	per_angle = DEG2RAD(per_angle);
+
+	DrawLine(SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_CENTER_X + ps->stats[STAT_USERCMD_RIGHTMOVE], SCREEN_CENTER_Y - ps->stats[STAT_USERCMD_FORWARDMOVE], colorCyan);
+
+	vel_size /= 5;
+	DrawLine(SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_CENTER_X + vel_size * sin(vel_relang), SCREEN_CENTER_Y - vel_size * cos(vel_relang), colorRed);
+	if(vel_size > SCREEN_HEIGHT / 2)
+		vel_size = SCREEN_HEIGHT / 2;
+
+	vel_size /= 2;
+	DrawLine(SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_CENTER_X + vel_size * sin(vel_relang + per_angle), SCREEN_CENTER_Y - vel_size * cos(vel_relang + per_angle), colorRed);
+	DrawLine(SCREEN_CENTER_X, SCREEN_CENTER_Y, SCREEN_CENTER_X + vel_size * sin(vel_relang - per_angle), SCREEN_CENTER_Y - vel_size * cos(vel_relang - per_angle), colorRed);
+
+	return;
+*/
+/*
+	//type 3
+	if((cg.snap->ps.pm_flags & PMF_FORWARD_KEY_PRESSED) && (cg.snap->ps.pm_flags & PMF_BACKWARD_KEY_PRESSED))
+		forwardk = 0.0f;
+	else if(cg.snap->ps.pm_flags & PMF_BACKWARD_KEY_PRESSED)
+		forwardk = -1.0f;
+	else if(cg.snap->ps.pm_flags & PMF_FORWARD_KEY_PRESSED)
+		forwardk = 1.0f;
+	else
+		forwardk = 0.0f;
+
+	if((cg.snap->ps.pm_flags & PMF_MOVE_RIGHT_KEY_PRESSED) && (cg.snap->ps.eFlags & EF_MOVE_LEFT_KEY_PRESSED))
+		rightk = 0.0f;
+	else if(cg.snap->ps.eFlags & EF_MOVE_LEFT_KEY_PRESSED)
+		rightk = -1.0f;
+	else if(cg.snap->ps.pm_flags & PMF_MOVE_RIGHT_KEY_PRESSED)
+		rightk = 1.0f;
+	else
+		rightk = 0.0f;
+
+	accel_angle = atan2(-rightk, forwardk);
+	accel_angle = AngleNormalize180(ps->viewangles[YAW] + RAD2DEG(accel_angle));
+
+	CG_FillRect(SCREEN_CENTER_X - w / 2, y, 1, h, colorWhite);
+	CG_FillRect(SCREEN_CENTER_X        , y, 1, h, colorWhite);
+	CG_FillRect(SCREEN_CENTER_X + w / 2, y, 1, h, colorWhite);
+
+	if(vel_size < ps->speed * scale)
+		return;
+
+	//first case (consider left strafe)
+	ang = AngleNormalize180(vel_angle + per_angle - accel_angle);
+	if(ang > -CGAZ3_ANG && ang < CGAZ3_ANG)
+	{
+		//acceleration "should be on the left side" from velocity
+		if(ang < 0)
+		{
+			VectorCopy(colorGreen, color);
+			CG_FillRect(SCREEN_CENTER_X + w * ang / (2 * CGAZ3_ANG), y, -w * ang / (2 * CGAZ3_ANG), h, color);
+		}
+		else
+		{
+			VectorCopy(colorRed, color);
+			CG_FillRect(SCREEN_CENTER_X, y, w * ang / (2 * CGAZ3_ANG), h, color);
+		}
+
+		return;
+	}
+
+	//second case (consider right strafe)
+	ang = AngleNormalize180(vel_angle - per_angle - accel_angle);
+	if(ang > -CGAZ3_ANG && ang < CGAZ3_ANG)
+	{
+		//acceleration "should be on the right side" from velocity
+		if(ang > 0)
+		{
+			VectorCopy(colorGreen, color);
+			CG_FillRect(SCREEN_CENTER_X, y, w * ang / (2 * CGAZ3_ANG), h, color);
+		}
+		else
+		{
+			VectorCopy(colorRed, color);
+			CG_FillRect(SCREEN_CENTER_X + w * ang / (2 * CGAZ3_ANG), y, -w * ang / (2 * CGAZ3_ANG), h, color);
+		}
+
+		return;
+	}
+
+	return;
+*/
+	//type 4
+/*	if((cg.snap->ps.pm_flags & PMF_FORWARD_KEY_PRESSED) && (cg.snap->ps.pm_flags & PMF_BACKWARD_KEY_PRESSED))
+		forwardk = 0.0f;
+	else if(cg.snap->ps.pm_flags & PMF_BACKWARD_KEY_PRESSED)
+		forwardk = -1.0f;
+	else if(cg.snap->ps.pm_flags & PMF_FORWARD_KEY_PRESSED)
+		forwardk = 1.0f;
+	else
+		forwardk = 0.0f;
+
+	if((cg.snap->ps.pm_flags & PMF_MOVE_RIGHT_KEY_PRESSED) && (cg.snap->ps.eFlags & EF_MOVE_LEFT_KEY_PRESSED))
+		rightk = 0.0f;
+	else if(cg.snap->ps.eFlags & EF_MOVE_LEFT_KEY_PRESSED)
+		rightk = -1.0f;
+	else if(cg.snap->ps.pm_flags & PMF_MOVE_RIGHT_KEY_PRESSED)
+		rightk = 1.0f;
+	else
+		rightk = 0.0f;
+
+	accel_angle = atan2(-rightk, forwardk);
+	accel_angle = AngleNormalize180(ps->viewangles[YAW] + RAD2DEG(accel_angle));
+
+	if(vel_size < ps->speed * scale)
+		return;
+
+	VectorCopy(colorGreen, color);
+
+	//speed direction
+	//FIXME: shows @side of screen when going backward
+	CG_FillRect(SCREEN_CENTER_X + w * vel_relang / 180, y+20, 1, h/2, colorCyan);
+//	CG_DrawPic(SCREEN_CENTER_X + w * vel_relang / 180, y + h, 16, 16, cgs.media.CGazArrow);
+
+	//FIXME: show proper outside border where you stop accelerating
+	//first case (consider left strafe)
+	ang = AngleNormalize180(vel_angle + per_angle - accel_angle);
+	if(ang < 90 && ang > -90)
+	{
+		//acceleration "should be on the left side" from velocity
+		CG_FillRect(SCREEN_CENTER_X + w * ang / 180, y, w / 2, h, color);
+		CG_FillRect(SCREEN_CENTER_X + w * ang / 180, y, 1, h, colorGreen);
+
+		return;
+	}
+
+	//second case (consider right strafe)
+	ang = AngleNormalize180(vel_angle - per_angle - accel_angle);
+	if(ang < 90 && ang > -90)
+	{
+		//acceleration "should be on the right side" from velocity
+		CG_FillRect(SCREEN_CENTER_X + w * ang / 180 - w / 2, y, w / 2, h, color);
+		CG_FillRect(SCREEN_CENTER_X + w * ang / 180, y, 1, h, colorGreen);
+
+		return;
+	}
+
+	return;
+*/
+/*
+	//type 5
+	if((cg.snap->ps.pm_flags & PMF_FORWARD_KEY_PRESSED) && (cg.snap->ps.pm_flags & PMF_BACKWARD_KEY_PRESSED))
+		forwardk = 0.0f;
+	else if(cg.snap->ps.pm_flags & PMF_BACKWARD_KEY_PRESSED)
+		forwardk = -1.0f;
+	else if(cg.snap->ps.pm_flags & PMF_FORWARD_KEY_PRESSED)
+		forwardk = 1.0f;
+	else
+		forwardk = 0.0f;
+
+	if((cg.snap->ps.pm_flags & PMF_MOVE_RIGHT_KEY_PRESSED) && (cg.snap->ps.eFlags & EF_MOVE_LEFT_KEY_PRESSED))
+		rightk = 0.0f;
+	else if(cg.snap->ps.eFlags & EF_MOVE_LEFT_KEY_PRESSED)
+		rightk = -1.0f;
+	else if(cg.snap->ps.pm_flags & PMF_MOVE_RIGHT_KEY_PRESSED)
+		rightk = 1.0f;
+	else
+		rightk = 0.0f;
+
+	accel_angle = atan2(-rightk, forwardk);
+	accel_angle = AngleNormalize180(ps->viewangles[YAW] + RAD2DEG(accel_angle));
+
+	if(vel_size < ps->speed * scale)
+		return;
+
+	//left
+	ang = AngleNormalize180(vel_angle + per_angle - accel_angle);
+	if(ang < 90 && ang > -90)
+	{
+//		CG_DrawPic(SCREEN_CENTER_X - 10 - w * ang / 180, y, 20, 20, cgs.media.CGaz5);
+		return;
+	}
+
+	//right
+	ang = AngleNormalize180(vel_angle - per_angle - accel_angle);
+	if(ang < 90 && ang > -90)
+	{
+//		CG_DrawPic(SCREEN_CENTER_X + 10 - w * ang / 180 - 20, y, 20, 20, cgs.media.CGaz5);
+		return;
+	}
+
+	return;
+*/
+}
+
 /*
 =================
 CG_DrawWeaponSideBar
@@ -4267,9 +4682,10 @@ static void CG_Draw2D( void ) {
 			CG_DrawStatusBar();
 #endif
 
-			{ //Spike's Speedometer
-				qboolean draw_speed, draw_maxspeed;
-				int x, y;
+			{
+				//Spike's Speedometer
+				qboolean draw_speed, draw_maxspeed, draw;
+				int x, y, w, h;
 				float alpha;
 				char *sptr;
 				//char sptr[MAX_STRING_TOKENS];
@@ -4282,7 +4698,8 @@ static void CG_Draw2D( void ) {
 				draw_speed = atoi(token);
 				CG_ExtractToken(&sptr, token);
 				draw_maxspeed = atoi(token);
-				if ( draw_speed || draw_maxspeed ) {
+				if(draw_speed || draw_maxspeed)
+				{
 					//Don't waste time if we're not gonna draw
 					CG_ExtractToken(&sptr, token);
 					x = atoi(token);
@@ -4293,29 +4710,56 @@ static void CG_Draw2D( void ) {
 
 					CG_DrawSpeedometer(draw_speed, draw_maxspeed, x, y, alpha);
 				}
-			}
 
-			if(cg_pmove_fixed.integer)
-			{ //Spike's OB Detector
-				qboolean draw;
-				int x, y;
-				float alpha;
-				char *sptr;
-				char token[24];
-
-				sptr = ch_OBDetector.string;
+				//Spike's Jump Speed Readout
+				sptr = ch_JumpSpeeds.string;
 				CG_ExtractToken(&sptr, token);
 				draw = atoi(token);
 				if(draw)
 				{
 					CG_ExtractToken(&sptr, token);
-					x = atoi(token);
-					CG_ExtractToken(&sptr, token);
 					y = atoi(token);
 					CG_ExtractToken(&sptr, token);
 					alpha = atof(token);
 
-					CG_DrawOBs(x, y, alpha);
+					CG_DrawJumpSpeeds(y, alpha);
+				}
+
+				if(cg_pmove_fixed.integer)
+				{
+					//Spike's OB Detector
+					sptr = ch_OBDetector.string;
+					CG_ExtractToken(&sptr, token);
+					draw = atoi(token);
+					if(draw)
+					{
+						CG_ExtractToken(&sptr, token);
+						x = atoi(token);
+						CG_ExtractToken(&sptr, token);
+						y = atoi(token);
+						CG_ExtractToken(&sptr, token);
+						alpha = atof(token);
+
+						CG_DrawOBs(x, y, alpha);
+					}
+				}
+
+				//Spike's Strafe HUD
+				sptr = ch_StrafeHUD.string;
+				CG_ExtractToken(&sptr, token);
+				draw = atoi(token);
+				if(draw)
+				{
+					CG_ExtractToken(&sptr, token);
+					y = atoi(token);
+					CG_ExtractToken(&sptr, token);
+					w = atoi(token);
+					CG_ExtractToken(&sptr, token);
+					h = atoi(token);
+					CG_ExtractToken(&sptr, token);
+					alpha = atof(token);
+
+					CG_DrawStrafeHUD(y, w, h, alpha);
 				}
 			}
 

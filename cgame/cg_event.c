@@ -511,7 +511,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	}
 	ci = &cgs.clientinfo[ clientNum ];
 
-
+	//----
+	if(clientNum == cg.predictedPlayerState.clientNum)
+		cg.leftground = qfalse;
 
 	//if (!AllowEntityInteraction(cent))
 	//	return;
@@ -566,6 +568,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			// smooth landing z changes
 			cg.landChange = -8;
 			cg.landTime = cg.time;
+
+			//-------
+			cg.ongroundevent = qtrue;
 		}
 		break;
 	case EV_FALL_MEDIUM:
@@ -576,6 +581,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			// smooth landing z changes
 			cg.landChange = -16;
 			cg.landTime = cg.time;
+
+			//-------
+			cg.ongroundevent = qtrue;
 		}
 		break;
 	case EV_FALL_FAR:
@@ -586,6 +594,9 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 			// smooth landing z changes
 			cg.landChange = -24;
 			cg.landTime = cg.time;
+
+			//-------
+			cg.ongroundevent = qtrue;
 		}
 		break;
 
@@ -602,6 +613,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		if ( clientNum != cg.predictedPlayerState.clientNum ) {
 			break;
 		}
+
 		// if we are interpolating, we don't need to smooth steps
 		if ( cg.demoPlayback || (cg.snap->ps.pm_flags & PMF_FOLLOW) ||
 			cg_nopredict.integer || cg_synchronousClients.integer ) {
@@ -642,6 +654,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 						  cgs.media.smokePuffShader );
 		}
 
+		//-----
+		if(clientNum == cg.predictedPlayerState.clientNum)
+			cg.leftground = qtrue;
+
 		// boing sound at origin, jump sound on player
 		trap_S_StartSound ( cent->lerpOrigin, -1, CHAN_VOICE, cgs.media.jumpPadSound );
 		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.wav" ) );
@@ -649,6 +665,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_JUMP:
 		DEBUGNAME("EV_JUMP");
+
+		//-----
+		if(clientNum == cg.predictedPlayerState.clientNum)
+			cg.leftground = qtrue;
+
 		trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*jump1.wav" ) );
 		break;
 	case EV_TAUNT:
@@ -864,6 +885,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	case EV_PLAYER_TELEPORT_OUT:
 		DEBUGNAME("EV_PLAYER_TELEPORT_OUT");
+
+		//-----
+		if(clientNum == cg.predictedPlayerState.clientNum)
+			cg.clearspeeds = qtrue;
+
 		trap_S_StartSound (NULL, es->number, CHAN_AUTO, cgs.media.teleOutSound );
 		CG_SpawnEffect(  position);
 		break;
@@ -1193,6 +1219,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	case EV_DEATH2:
 	case EV_DEATH3:
 		DEBUGNAME("EV_DEATHx");
+
+		//----
+		if(clientNum == cg.predictedPlayerState.clientNum)
+			cg.clearspeeds = qtrue;
+
 		trap_S_StartSound( NULL, es->number, CHAN_VOICE, 
 				CG_CustomSound( es->number, va("*death%i.wav", event - EV_DEATH1 + 1) ) );
 		break;

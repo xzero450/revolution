@@ -662,6 +662,8 @@ typedef struct {
 
 	//qboolean cameraMode;		// if rendering from a loaded camera
 
+	//----
+	qboolean ongroundevent, leftground, clearspeeds, onground;
 
 	// development tool
 	refEntity_t		testModelEntity;
@@ -1523,6 +1525,8 @@ extern	vmCvar_t		language; //help language
 extern	vmCvar_t		ch_file;
 extern	vmCvar_t		ch_Speedometer;		//Spike's Speedometer
 extern	vmCvar_t		ch_OBDetector;		//Spike's OB Detector
+extern	vmCvar_t		ch_JumpSpeeds;		//Spike's Jump Speed Readout
+extern	vmCvar_t		ch_StrafeHUD;		//Spike's Strafe HUD
 extern	vmCvar_t		ch_weaponSideBar;
 extern	vmCvar_t		ch_viewKeyPress;
 //Client HUD */
@@ -1710,7 +1714,9 @@ qhandle_t CG_StatusHandle(int task);
 //Spike's Speedometer
 void CG_ExtractToken(char **ptr, char *token);
 //void CG_DrawSpeedometer(qboolean draw_speed, qboolean draw_maxspeed, int x, int y, float alpha);
+void CG_DrawJumpSpeeds(int y, float alpha);
 void CG_DrawOBs(int x, int y, float alpha);
+void CG_DrawStrafeHUD(int yi, int wi, int hi, float alpha);
 
 
 

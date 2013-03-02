@@ -252,8 +252,10 @@ vmCvar_t	cg_muzzleFlash;
 vmCvar_t	cl_timeNudge;//ROM
 vmCvar_t	cg_aimType;
 vmCvar_t	cg_aimNudge;
-vmCvar_t	ch_Speedometer;//Spike's Speedometer
-vmCvar_t	ch_OBDetector;//Spike's OB Detector
+vmCvar_t	ch_Speedometer;		//Spike's Speedometer
+vmCvar_t	ch_OBDetector;		//Spike's OB Detector
+vmCvar_t	ch_JumpSpeeds;		//Spike's Jump Speed Readout
+vmCvar_t	ch_StrafeHUD;		//Spike's Strafe HUD
 vmCvar_t	ch_weaponSideBar;
 vmCvar_t	ch_viewKeyPress;
 vmCvar_t	cg_fastRespawn_override;
@@ -473,7 +475,9 @@ freeze*/
 	{ &cg_drawDeathMessage, "cg_drawDeathMessage", "1", CVAR_ARCHIVE},
 	{ &cl_timeNudge, "cl_timeNudge", "0", CVAR_ROM | CVAR_USERINFO },//ROM
 	{ &ch_Speedometer, "ch_Speedometer", "0 0 200 350 1", CVAR_ARCHIVE },//Spike's Speedometer
+	{ &ch_JumpSpeeds, "ch_JumpSpeeds", "0 320 1", CVAR_ARCHIVE },//Spike's Jump Speeds Readout
 	{ &ch_OBDetector, "ch_OBDetector", "0 250 220 1", CVAR_ARCHIVE },//Spike's OB Detector
+	{ &ch_StrafeHUD, "ch_StrafeHUD", "0 270 440 10 0.6", CVAR_ARCHIVE },//Spike's Strafe HUD
 	{ &ch_weaponSideBar, "ch_weaponSideBar", "0 9 7 4 7", CVAR_ARCHIVE },//{Display Background_color Width Hieght Spacing}
 	{ &ch_viewKeyPress, "ch_viewKeyPress", "0 300 200 0 7 9", CVAR_ARCHIVE },
 	{ &cg_pmove_fixed, "cg_pmove_fixed", "0", CVAR_USERINFO | CVAR_ARCHIVE },
