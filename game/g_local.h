@@ -296,6 +296,7 @@ typedef struct {
 //
 // Mod code start
 //
+	char		altnetname[MAX_NETNAME];
 
 	int			fireStack[256];
 	int			fireStackIndex;

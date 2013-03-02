@@ -208,7 +208,9 @@ static void CG_ParseScores( void ) {
 		cgs.picked_up = atoi( CG_Argv( 5 ) );
 		memset( cg.scores, 0, sizeof( cg.scores ) );
 		cg.numScoreParse = 0;
-		CG_Printf("^3%i %i %i %i\n", cg.numScores, cg.teamScores[0], cg.teamScores[1], cgs.picked_up);
+		if ( cg.dbgScoreboard ) {
+			CG_Printf("^3%i %i %i %i\n", cg.numScores, cg.teamScores[0], cg.teamScores[1], cgs.picked_up);
+		}
 	} else {
 		i = 0;
 
@@ -1255,6 +1257,22 @@ static void CG_RemoveChatEscapeChar( char *text ) {
 
 	l = 0;
 	for ( i = 0; text[i]; i++ ) {
+		//Added
+		/*if ( text[i] == '^' ) {
+			if ( (text[i+2] == ',' || text[i+2] == ':') && text[i+3] == '^' ) {
+				if ( text[i+5] == ',' && text[i+6] == '^' ) {
+					i += 5;
+				} else {
+					i += 3;
+				}
+			}
+		}
+
+		if ( !text[i] ) {
+			break;
+		}*/
+		//Added
+
 		if (text[i] == '\x19')
 			continue;
 		text[l++] = text[i];
@@ -1293,30 +1311,30 @@ static void CG_HandleMiss( int clientsMissed )
 }
 
 void CG_HandleVote(char *cmd) {
+	int value;
 	char *token;
 	token = COM_Parse(&cmd);
+	value = atoi(token);
 
 	//CG_Printf("HandleVote: %s\n", cmd);
-
-	if ( !cgs.voteTime ) { //FIXME: It's possible to get the yes/no totals sent before this
+	if ( value <= 0 ) {
+		CG_Printf("Vote %s\n", value==0?("passed."):("failed."));
+		cgs.voteTime = 0;
+		cgs.voteYes = 0;
+		cgs.voteNo = 0;
+		memset(cgs.voteString, 0, sizeof(cgs.voteString));
+	} else if ( value > 0 ) { //FIXME: It's possible to get the yes/no totals sent before this
 		char msg[MAX_STRING_TOKENS];
 //		char *token1;
-		cgs.voteTime = atoi( token );
+		cgs.voteTime = value;
 		Q_strncpyz(msg, cmd, sizeof(msg));
 		//CG_Printf("DBG: VoteDisplay: %s %s -- %s\n", token, token1, msg);
 		Com_sprintf(cgs.voteString, sizeof(cgs.voteString), "%s", msg);
 		cgs.voteYes = 1;
 	} else {
-		if ( atoi(token) == -1 ) {
-			cgs.voteTime = 0;
-			cgs.voteYes = 0;
-			cgs.voteNo = 0;
-			memset(cgs.voteString, 0, sizeof(cgs.voteString));
-		} else {
-			trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
-			cgs.voteYes = atoi( token );
-			cgs.voteNo = atoi( cmd );
-		}
+		trap_S_StartLocalSound( cgs.media.talkSound, CHAN_LOCAL_SOUND );
+		cgs.voteYes = atoi( token );
+		cgs.voteNo = atoi( cmd );
 	}
 	//CG_Printf("DBG: VoteDisplay: %s %i %i %i\n", cgs.voteString, cgs.voteTime, cgs.voteYes, cgs.voteNo);
 }

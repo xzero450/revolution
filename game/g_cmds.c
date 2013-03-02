@@ -17,6 +17,134 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	char		string[1400];
 	char		*tova;
 	int			stringlength;
+	int			i;//, position = 0;
+	int			last_send = 0;
+	gclient_t	*cl;
+	//byte		bytez[1400];
+	//byte		test[5] = {255, 254, 253, 252, 251};
+	int			numSorted, scoreFlags, accuracy, perfect;
+
+
+	//memset(&bytez, 0, sizeof(bytez));
+	// send the latest information on all clients
+	string[0] = 0;
+	stringlength = 0;
+	scoreFlags = 0;
+
+	numSorted = level.numConnectedClients;
+
+	//We do this first so we know to memset on the client
+	//99 signals memset
+	trap_SendServerCommand( ent-g_entities, va("scores 99 %i %i %i %i\n", numSorted, 
+		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE], level.stats_picked) );
+
+	for (i=0 ; i < numSorted ; i++) {
+		int		ping = 0, time = 0, score = 0;
+
+		cl = &level.clients[level.sortedClients[i]];
+
+		if ( cl->pers.connected == CON_CONNECTING ) {
+			ping = -1;
+		} else {
+			//Ping_fix 2 and 3 adjust ping to be "real"
+			switch ( gameSettings.ping_fix ) {
+				case 2:
+					{
+						int j;
+
+						for ( j = 0; j < NUM_PING_SAMPLES; j++ ) {
+							ping += cl->pers.pingsamples[j];
+						}
+						ping /= NUM_PING_SAMPLES;
+						break;
+					}
+				case 3:
+					ping = cl->ps.ping - cl->pers.ping_fix_adjustment;
+					break;
+				default:
+					ping = cl->ps.ping;
+					break;
+			}
+			ping = ping < 999 ? ping : 999;
+		}
+
+		/*if ( ping != 999 && ping >= 0 && (position + 5) > 1399 && cl->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR ) {
+			break; //We're completely out of room.
+		} else if ( position + 62 > 1399 ) {
+			continue; //Skip over players when we run out of room for them
+		}*/
+
+		if( cl->accuracy_shots ) {
+			accuracy = cl->accuracy_hits * 100 / cl->accuracy_shots;
+			if ( accuracy > 100 ) {
+				accuracy = 100;
+			}
+		} else {
+			accuracy = 0;
+		}
+		perfect = ( cl->ps.persistant[PERS_RANK] == 0 && cl->ps.persistant[PERS_KILLED] == 0 ) ? 1 : 0;
+	
+//freeze
+		if ( g_gamemode.integer > 3 ) {
+			scoreFlags = cl->sess.wins;
+		}
+//freeze
+
+		Com_sprintf (entry, sizeof(entry),
+			"%i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i",
+			level.sortedClients[i],							//  1 - 1 byte
+			cl->ps.persistant[PERS_SCORE],					//  2 - 2 byte
+			ping,											//  3 - 2 byte && move this to slot 2 -- if it's -1, don't send the rest.
+			(level.time - cl->pers.enterTime)/60000,		//  4 - 2 byte
+			scoreFlags,										//  5 - 2 byte
+			g_entities[level.sortedClients[i]].s.powerups,	//  6 - 1 byte
+			accuracy,										//  7 - 2 byte && check for removal from message
+			cl->ps.persistant[PERS_IMPRESSIVE_COUNT],		//  8 - 2 byte
+			cl->ps.persistant[PERS_EXCELLENT_COUNT],		//  9 - 2 byte
+			cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT],	// 10 - 2 byte
+			cl->ps.persistant[PERS_DEFEND_COUNT],			// 11 - 2 byte
+			cl->ps.persistant[PERS_ASSIST_COUNT],			// 12 - 2 byte
+			perfect,										// 13 - 1 byte
+			cl->ps.persistant[PERS_CAPTURES],				// 14 - 2 byte || we limit capturelimit to 255
+			cl->pers.stats_shots[WP_GAUNTLET],				// 15 - 2 byte
+			cl->pers.stats_shots[WP_MACHINEGUN],			// 16 - 2 byte
+			cl->pers.stats_shots[WP_SHOTGUN],				// 17 - 2 byte
+			cl->pers.stats_shots[WP_GRENADE_LAUNCHER],		// 18 - 2 byte
+			cl->pers.stats_shots[WP_ROCKET_LAUNCHER],		// 19 - 2 byte
+			cl->pers.stats_shots[WP_LIGHTNING],				// 20 - 2 byte
+			cl->pers.stats_shots[WP_RAILGUN],				// 21 - 2 byte
+			cl->pers.stats_shots[WP_PLASMAGUN],				// 22 - 2 byte
+			cl->pers.stats_shots[WP_BFG],					// 23 - 2 byte
+			cl->pers.stats_hits[WP_GAUNTLET],				// 24 - 2 byte
+			cl->pers.stats_hits[WP_MACHINEGUN],				// 25 - 2 byte
+			cl->pers.stats_hits[WP_SHOTGUN],				// 26 - 2 byte
+			cl->pers.stats_hits[WP_GRENADE_LAUNCHER],		// 27 - 2 byte
+			cl->pers.stats_hits[WP_ROCKET_LAUNCHER],		// 28 - 2 byte
+			cl->pers.stats_hits[WP_LIGHTNING],				// 29 - 2 byte
+			cl->pers.stats_hits[WP_RAILGUN],				// 30 - 2 byte
+			cl->pers.stats_hits[WP_PLASMAGUN],				// 31 - 2 byte
+			cl->pers.stats_hits[WP_BFG],					// 32 - 2 byte
+			cl->pers.stats_deaths,							// 33 - 2 byte
+			cl->pers.stats_specnum							// 34 - 1 byte
+			);
+			last_send++;
+			trap_SendServerCommand( ent-g_entities, va("scores %s\n", entry ) );
+	}
+	
+}
+
+/*
+==================
+Cmd_NewScore_f
+
+Request current scoreboard information
+==================
+*/
+void Cmd_NewScore_f( gentity_t *ent ) {
+	char		entry[156];//This might be too tight..
+	char		string[1400];
+	char		*tova;
+	int			stringlength;
 	int			i, position = 0;
 	int			last_send = 0;
 	gclient_t	*cl;
@@ -262,9 +390,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 	//G_Printf("%s\n", string);
 	//G_Printf("^5DBG:memcpy: %d %d %d %d %d -- %s\n", (int)str[0], (int)str[1], (int)str[2], (int)str[3], (int)str[4], str);
 	trap_SendServerCommand( ent-g_entities, string );
-	
 }
-
 
 /*
 ==================
@@ -1287,26 +1413,26 @@ void G_Say( gentity_t *ent, gentity_t *target, int mode, const char *chatText ) 
 	default:
 	case SAY_ALL:
 		G_LogPrintf( "say: %s: %s\n", ent->client->pers.netname, chatText );
-		Com_sprintf (name, sizeof(name), "%s%c%c"EC": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+		Com_sprintf (name, sizeof(name), "%s%c%c"EC": ", ent->client->pers.altnetname, Q_COLOR_ESCAPE, COLOR_WHITE );
 		color = COLOR_GREEN;
 		break;
 	case SAY_TEAM:
 		G_LogPrintf( "sayteam: %s: %s\n", ent->client->pers.netname, chatText );
 		if (Team_GetLocationMsg(ent, location, sizeof(location)))
 			Com_sprintf (name, sizeof(name), EC"(%s%c%c"EC") (%s)"EC": ", 
-				ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE, location);
+				ent->client->pers.altnetname, Q_COLOR_ESCAPE, COLOR_WHITE, location);
 		else
 			Com_sprintf (name, sizeof(name), EC"(%s%c%c"EC")"EC": ", 
-				ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+				ent->client->pers.altnetname, Q_COLOR_ESCAPE, COLOR_WHITE );
 		color = COLOR_CYAN;
 		break;
 	case SAY_TELL:
 		if (target && g_gametype.integer >= GT_TEAM &&
 			target->client->sess.sessionTeam == ent->client->sess.sessionTeam &&
 			Team_GetLocationMsg(ent, location, sizeof(location)))
-			Com_sprintf (name, sizeof(name), EC"[%s%c%c"EC"] (%s)"EC": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE, location );
+			Com_sprintf (name, sizeof(name), EC"[%s%c%c"EC"] (%s)"EC": ", ent->client->pers.altnetname, Q_COLOR_ESCAPE, COLOR_WHITE, location );
 		else
-			Com_sprintf (name, sizeof(name), EC"[%s%c%c"EC"]"EC": ", ent->client->pers.netname, Q_COLOR_ESCAPE, COLOR_WHITE );
+			Com_sprintf (name, sizeof(name), EC"[%s%c%c"EC"]"EC": ", ent->client->pers.altnetname, Q_COLOR_ESCAPE, COLOR_WHITE );
 		color = COLOR_MAGENTA;
 		break;
 	}
@@ -1690,7 +1816,8 @@ void CheckVote( void ) {
 		tempEnt->s.eventParm = G_SoundIndex( "sound/world/klaxon2.wav" );
 		tempEnt->r.svFlags |= SVF_BROADCAST;
 		// execute the command, then remove the vote
-		trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
+		//trap_SendServerCommand( -1, "print \"Vote passed.\n\"" );
+		trap_SendServerCommand( -1, "vt 0\n" );
 		level.voteYes = 128;
 		if ( level.match_called == 1 ) {
 			level.match_called = 0;
@@ -1713,14 +1840,15 @@ void CheckVote( void ) {
 		}
 	} else if ( level.voteNo >= level.numVotingClients/2 ) {
 		// same behavior as a timeout
-		trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+		//trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+		trap_SendServerCommand( -1, "vt -1\n" );
 	} else {
 		// still waiting for a majority
 		return;
 	}
 	//level.voteTime = 0;
 	//trap_SetConfigstring( CS_VOTE_TIME, "" );
-	trap_SendServerCommand( -1, "vt -1\n" );
+	//trap_SendServerCommand( -1, "vt -1\n" );
 }
 
 /*
