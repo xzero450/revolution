@@ -3136,6 +3136,8 @@ void CG_DrawSpeedometer(qboolean draw_speed, qboolean draw_maxspeed, int x, int 
 	int width;
 	vec4_t color = {1.0f, 1.0f, 1.0f};
 
+	if ( (sv_lock_pmove.integer && !pmove_fixed.integer) || (!cg_pmove_fixed.integer && !sv_lock_pmove.integer) )
+		memcpy(color, colorYellow, sizeof(color));
 	color[3] = alpha;
 
 	speed = 1.0f / Q_rsqrt(cg.snap->ps.velocity[0] * cg.snap->ps.velocity[0] +

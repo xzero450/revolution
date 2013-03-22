@@ -3042,6 +3042,7 @@ void Cmd_Ready_f ( gentity_t *ent ) {
 				continue;
 			}
 
+			//This could be optimized by storing it in level. and only adding to it..
 			if ( level.clients[i].playerReady ) {
 				if ( i < 32 ) {
 					readyMask |= 1 << i;

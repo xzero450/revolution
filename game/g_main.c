@@ -2327,7 +2327,7 @@ end = trap_Milliseconds();
 	// cancel vote if timed out or execute the command
 	if ( level.voteTime && ((level.time - level.voteTime) >= VOTE_TIME) ) {
 		level.voteTime = 0;
-		trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
+		//trap_SendServerCommand( -1, "print \"Vote failed.\n\"" );
 		trap_SendServerCommand( -1, "vt -1\n" );
 	} else if ( level.voteExecuteTime && level.voteExecuteTime < level.time ) {
 		level.voteTime = 0;

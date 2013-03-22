@@ -1554,7 +1554,7 @@ extern	vmCvar_t		ch_shadowOffset;
 extern	vmCvar_t		cg_redName;
 extern	vmCvar_t		cg_blueName;
 extern	vmCvar_t		cg_debugModels;
-extern	vmCvar_t		cg_fontFade;
+//extern	vmCvar_t		cg_fontFade;
 
 //CPMA -- Purposely created to be "like" CPMA
 extern	vmCvar_t		cg_fallKick;

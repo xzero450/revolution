@@ -279,7 +279,7 @@ vmCvar_t	ch_shadowOffset;
 vmCvar_t	cg_redName;
 vmCvar_t	cg_blueName;
 vmCvar_t	cg_debugModels;
-vmCvar_t	cg_fontFade;
+//vmCvar_t	cg_fontFade;
 
 //CPMA conforming
 vmCvar_t	cg_fallKick;
@@ -501,7 +501,7 @@ freeze*/
 	{ &cg_redName, "g_redName", "Ztroggz", CVAR_ARCHIVE },
 	{ &cg_blueName, "g_blueName", "Paganz", CVAR_ARCHIVE },
 	{ &cg_debugModels, "cg_debugModels", "0", CVAR_ARCHIVE },
-	{ &cg_fontFade, "cg_fontFade", "0", CVAR_ARCHIVE },
+	//{ &cg_fontFade, "cg_fontFade", "0", CVAR_ARCHIVE },
 
 	//CPMA
 	{ &cg_fallKick, "cg_fallKick", "1", CVAR_ARCHIVE },

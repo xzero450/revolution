@@ -66,7 +66,6 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 
 		//unlagged - backward reconciliation #2
 	// put them back
-		//Do this for railjumping?
 	G_UndoTimeShiftFor( ent );
 	//unlagged - backward reconciliation #2
 	// set aiming directions
@@ -79,7 +78,7 @@ qboolean CheckGauntletAttack( gentity_t *ent ) {
 
 	if (ent->client->frameAimType >= 2 ) {
 		clientHitNum = GetClientTarget(ent);
-		timeshift = ComputeNewTimeShift(ent, gameSettings.hitscans[GS_LIGHTNING][GS_RANGE], clientHitNum);
+		timeshift = ComputeNewTimeShift(ent, gameSettings.hitscans[GS_GAUNTLET][GS_RANGE], clientHitNum);
 
 		if ( timeshift == 0 ) {
 			hitNothing = 1;
