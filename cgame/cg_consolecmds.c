@@ -975,6 +975,7 @@ static void CG_HelpSystem_f(void)
 	if(length >= MAX_HELP_FILE_SIZE)
 	{
 		CG_Printf(""S_COLOR_RED"Loading %s.help.cfg failed! File too large\n", language.string);
+		trap_FS_FCloseFile( f );//4/22/2013
 		return;
 	}
 
@@ -1476,12 +1477,14 @@ void ParseHud( void ) {
 	if((length = trap_FS_FOpenFile(filename, &f, FS_READ)) <= 0)
 	{
 		CG_Printf(""S_COLOR_RED"Loading HUD file %s failed! Empty HUD file\n", ch_file.string);
+		trap_FS_FCloseFile( f );//4/22/2013
 		return;
 	}
 
 	if(length >= MAX_HELP_FILE_SIZE - 1)
 	{
 		CG_Printf(""S_COLOR_RED"Loading HUD file %s failed! HUD file is too long\n", ch_file.string);
+		trap_FS_FCloseFile( f );//4/22/2013
 		return;
 	}
 

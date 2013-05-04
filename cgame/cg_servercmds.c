@@ -197,6 +197,7 @@ static void CG_ParseScores( void ) {
 
 	do_we_memset = atoi( CG_Argv( 1 ) );
 	if ( do_we_memset == 99 ) {
+//		int num_specs = atoi( CG_Argv( 6 ) ) + 1;
 			cg.numScores = atoi( CG_Argv( 2 ) );
 		if ( cg.numScores > MAX_CLIENTS ) {
 			cg.numScores = MAX_CLIENTS;
@@ -211,6 +212,23 @@ static void CG_ParseScores( void ) {
 		if ( cg.dbgScoreboard ) {
 			CG_Printf("^3%i %i %i %i\n", cg.numScores, cg.teamScores[0], cg.teamScores[1], cgs.picked_up);
 		}
+
+		//Mod 3.30.2013 - Parse spectator information here
+		//We're just not sending all the stat data for spectators and putting them "all" in here if we can.
+		/*
+		for ( i = 0; i < num_specs; i++ ) {								//i=0	//i=1	//i=2
+			cg.scores[cg.numScoreParse].client = atoi( CG_Argv( i * 4 + 7 ) );//7	//11	//15
+			cg.scores[cg.numScoreParse].score = atoi( CG_Argv( i * 4 + 8 ) );//8	//12	//16
+			cg.scores[cg.numScoreParse].ping = atoi( CG_Argv( i * 4 + 9 ) );//9		//13	//17
+			cg.scores[cg.numScoreParse].time = atoi( CG_Argv( i * 4 + 10 ) );//10	//14	//18
+			cg.scores[cg.numScoreParse].specnum = atoi(CG_Argv(i * 4 + 11));
+
+			cgs.clientinfo[ cg.scores[cg.numScoreParse].client ].score = cg.scores[cg.numScoreParse].score;
+			cgs.clientinfo[ cg.scores[cg.numScoreParse].client ].powerups = 0;
+			cg.scores[cg.numScoreParse].team = cgs.clientinfo[cg.scores[cg.numScoreParse].client].team;
+			cg.numTeamPlayers[cg.scores[cg.numScoreParse].team]++;
+			cg.numScoreParse++;
+		}*/
 	} else {
 		i = 0;
 

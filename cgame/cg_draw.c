@@ -4842,7 +4842,12 @@ static void CG_Draw2D( void ) {
 					CG_DrawKeyPress(draw_keys, x, y, keyColor, fontColor, size);
 				}
 			}
+			
 
+			if ( (g_gamemode.integer == 4 || g_gamemode.integer == 5) && cg.freezeThawTime && cg.freezeThawTime < cg.time) {
+
+				CG_FillRect(200, 400, 72 - ((cg.freezeThawTime - cg.time) / 72), 8, colorCyan);
+			}
 
 		// don't draw any status if dead or the scoreboard is being explicitly shown
 			if ( !cg.showScores && cg.snap->ps.stats[STAT_HEALTH] > 0 ) {

@@ -710,7 +710,7 @@ freeze*/
 	memset( self->client->ps.powerups, 0, sizeof(self->client->ps.powerups) );
 
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gamemode.integer > 3 && g_gametype.integer >= GT_TEAM ) {
 		player_freeze( self, attacker, meansOfDeath );
 		if ( self->freezeState ) {
 			G_AddEvent( self, EV_DEATH1 + ( rand() % 3 ), killer );
@@ -1133,9 +1133,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 //freeze
 		if ( g_gamemode.integer > 3 ) {
-			if ( client ) {
-				if ( targ != attacker && level.time - client->respawnTime < 1000 ) return;
-			} else {
+			if ( !client ) {
+			//	if ( targ != attacker && level.time - client->respawnTime < 1000 ) return;
+			//} else {
 				if ( DamageBody( targ, attacker, dir, mod, knockback ) ) return;
 			}
 		}

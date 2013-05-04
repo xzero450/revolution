@@ -249,8 +249,8 @@ static cvarTable_t		gameCvarTable[] = {
 //freeze
 	{ &g_smoothClients, "g_smoothClients", "2", CVAR_SERVERINFO, 0, qfalse},
 	{ &g_gamemode, "g_gamemode", "0", CVAR_SYSTEMINFO | CVAR_SERVERINFO | CVAR_LATCH, 0, qfalse },
-	{ &g_freezeRoundRespawn, "g_freezeRoundRespawn", "1", CVAR_LATCH, 0, qfalse },
-	{ &g_freezeAutothawTime, "g_freezeAutothawTime", "6", CVAR_LATCH, 0, qfalse },
+	{ &g_freezeRoundRespawn, "g_freezeRoundRespawn", "1", 0, 0, qfalse },
+	{ &g_freezeAutothawTime, "g_freezeAutothawTime", "6", 0, 0, qfalse },
 	{ &g_allowLockedTeams, "g_allowLockedTeams", "0", 0, 0, qtrue },
 	{ &g_allowReady, "g_allowReady", "1", CVAR_SYSTEMINFO, 0, qtrue },
 	{ &g_readyGrace, "g_readyGrace", "5", 0, 0, qtrue },
@@ -304,7 +304,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_muteSpecs, "g_muteSpecs", "0", 0, 0, qtrue }, //mute spectators
 	{ &g_muteTourneyspecs, "g_muteTourneyspecs", "1", 0, 0, qtrue }, //mute tournament spectators
 	{ &g_allowHandicap, "g_allowHandicap", "1", 0, 0, qtrue },
-	{ &g_pro_mode, "g_pro_mode", "0", CVAR_SYSTEMINFO | CVAR_SERVERINFO | CVAR_LATCH, 0, qtrue  }, // CPM: The overall CPM Toggle
+	{ &g_pro_mode, "g_pro_mode", "0", CVAR_SYSTEMINFO | CVAR_SERVERINFO/* | CVAR_LATCH*/, 0, qtrue  }, // CPM: The overall CPM Toggle
 	{ &g_timeInGrace, "g_timeInGrace", "0", 0, 0, qtrue },
 	{ &g_timeOutLength, "g_timeOutLength", "30", 0, 0, qtrue },
 	{ &g_timeOutLimit, "g_timeOutLimit", "2", 0, 0, qtrue },
@@ -534,7 +534,7 @@ void G_RegisterCvars( void ) {
 			cv->defaultString, cv->cvarFlags );
 		if ( cv->vmCvar )
 			cv->modificationCount = cv->vmCvar->modificationCount;
-
+		/*
 				// CPM: Detect if g_pro_mode has been changed
 				if (!strcmp(cv->cvarName,"g_pro_mode")) {
 					// Update all settings
@@ -558,6 +558,7 @@ void G_RegisterCvars( void ) {
 					}
 				}
 				// !CPM
+				*/
 				//if ( g_gamemode.integer == 2 ) {
 				//	trap_Cvar_Set("weap_allowed", "64" );
 				//}
@@ -645,21 +646,23 @@ void G_UpdateCvars( void ) {
 					trap_Cvar_Set( "disable_unlockTeam", "1" );//FIXME: Update this
 					level.team_Locked[TEAM_RED] = level.team_Locked[TEAM_BLUE] = qfalse;
 				} else if ( cv->vmCvar == &g_pro_mode ) {
-					/*CPM_UpdateSettings((cv->vmCvar->integer) ?
-						((g_gametype.integer == GT_TEAM) ? 2 : 1) : 0);*/
+					// CPM: Detect if g_pro_mode has been changed
+					CPM_UpdateSettings((cv->vmCvar->integer) ? ((g_gametype.integer == GT_TEAM) ? 2 : 1) : 0);
 					// Update all pro mode-dependent server-side cvars					
-					//if (cv->vmCvar->integer) {
+					/*if (cv->vmCvar->integer) {
 					//	//FIXME: This'll probably cause a crash..
-					//	trap_Cvar_Set("g_quadfactor", "4" ); // pro mode default
-					//	trap_Cvar_Set("g_forcerespawn", "3" );
-					//	trap_Cvar_Set("g_weaponrespawn", "15" );
-					//	trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer | DF_NO_FOOTSTEPS)); // turn off footsteps
-					//} else {
-					//	trap_Cvar_Set("g_quadfactor", "3" ); // q3 default
-					//	trap_Cvar_Set("g_forcerespawn", "20" );
-					//	trap_Cvar_Set("g_weaponrespawn", "5" );
-					//	trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer & ~DF_NO_FOOTSTEPS)); // turn on footsteps
-					//}
+						trap_Cvar_Set("g_quadfactor", "4" ); // pro mode default
+						trap_Cvar_Set("g_forcerespawn", "3" );
+						trap_Cvar_Set("g_weaponrespawn", "15" );
+						trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer | DF_NO_FOOTSTEPS)); // turn off footsteps
+					} else {
+						trap_Cvar_Set("g_quadfactor", "3" ); // q3 default
+						trap_Cvar_Set("g_forcerespawn", "20" );
+						trap_Cvar_Set("g_weaponrespawn", "5" );
+						trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer & ~DF_NO_FOOTSTEPS)); // turn on footsteps
+					}*/
+				// Set the config string (so clients will be updated)
+					trap_SetConfigstring(CS_PRO_MODE, va("%d", g_pro_mode.integer));
 					continue;
 				}
 
@@ -2176,6 +2179,19 @@ void G_RunFrame( int levelTime ) {
 
 	// get any cvar changes
 	G_UpdateCvars();
+	if ( g_pro_mode.integer && !level.cpm ) {
+		level.cpm = qtrue;
+		trap_Cvar_Set("g_quadfactor", "4" ); // pro mode default
+		trap_Cvar_Set("g_forcerespawn", "3" );
+		trap_Cvar_Set("g_weaponrespawn", "15" );
+		trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer | DF_NO_FOOTSTEPS)); // turn off footsteps
+	} else if ( !g_pro_mode.integer && level.cpm ) {
+		level.cpm = qfalse;
+		trap_Cvar_Set("g_quadfactor", "3" ); // q3 default
+		trap_Cvar_Set("g_forcerespawn", "20" );
+		trap_Cvar_Set("g_weaponrespawn", "5" );
+		trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer & ~DF_NO_FOOTSTEPS)); // turn on footsteps
+	}
 
 	//
 	// go through all allocated objects

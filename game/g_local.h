@@ -590,6 +590,7 @@ typedef struct {
 	qboolean	master_servers_set;
 	//debug
 	//qboolean	dbgflags;
+	qboolean	cpm;
 } level_locals_t;
 
 //task types

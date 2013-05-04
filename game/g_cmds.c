@@ -35,11 +35,69 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 
 	//We do this first so we know to memset on the client
 	//99 signals memset
+	memset(&string, 0, sizeof(string));
+	
+	//new - 3.30.2013
+	//The goal is to group and send spectator information right away to cut down on bandwidth
+	/*for (i=0 ; i < numSorted ; i++) {
+		int		ping = 0, time = 0, score = 0;
+		char	buff[128];
+		memset(&buff, 0, sizeof(buff));
+
+		if ( !(cl->pers.connected == CON_CONNECTING) || !(cl->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) )
+			continue;
+
+		cl = &level.clients[level.sortedClients[i]];
+
+		if ( cl->pers.connected == CON_CONNECTING ) {
+			ping = -1;
+		} else {
+			//Ping_fix 2 and 3 adjust ping to be "real"
+			switch ( gameSettings.ping_fix ) {
+				case 2:
+					{
+						int j;
+
+						for ( j = 0; j < NUM_PING_SAMPLES; j++ ) {
+							ping += cl->pers.pingsamples[j];
+						}
+						ping /= NUM_PING_SAMPLES;
+						break;
+					}
+				case 3:
+					ping = cl->ps.ping - cl->pers.ping_fix_adjustment;
+					break;
+				default:
+					ping = cl->ps.ping;
+					break;
+			}
+			ping = ping < 999 ? ping : 999;
+		}
+
+		Com_sprintf (buff, sizeof(buff), "%i %i %i %i %i ",
+			level.sortedClients[i],							//  1 - 1 byte
+			cl->ps.persistant[PERS_SCORE],					//  2 - 2 byte
+			ping,											//  3 - 2 byte && move this to slot 2 -- if it's -1, don't send the rest.
+			(level.time - cl->pers.enterTime)/60000,		//  4 - 2 byte
+			cl->pers.stats_specnum							// 34 - 1 byte
+			);
+		Q_strcat(string, sizeof(string), buff);
+		last_send++;//This is currently "number of spectators"
+	}
+	//new 3.30.2012
+	*/
 	trap_SendServerCommand( ent-g_entities, va("scores 99 %i %i %i %i\n", numSorted, 
-		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE], level.stats_picked) );
+		level.teamScores[TEAM_RED], level.teamScores[TEAM_BLUE], level.stats_picked) );//Mod - 3.30.2013
+	
+	last_send = 0;
 
 	for (i=0 ; i < numSorted ; i++) {
 		int		ping = 0, time = 0, score = 0;
+
+		//if ( (cl->pers.connected == CON_CONNECTING) || (cl->ps.persistant[PERS_TEAM] == TEAM_SPECTATOR) )
+			//continue;
+
+		memset(&string, 0, sizeof(string));
 
 		cl = &level.clients[level.sortedClients[i]];
 
@@ -153,7 +211,7 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 	int			numSorted, scoreFlags, accuracy, perfect;
 
 
-	memset(&bytez, 0, sizeof(bytez));
+	memset(&bytez, 64, sizeof(bytez));
 	// send the latest information on all clients
 	string[0] = 0;
 	stringlength = 0;
@@ -172,10 +230,10 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 	bytez[position++] = 's'; //Blue score
 	bytez[position++] = ' '; //Weapons picked up for marquee minus gauntlet
 
-	bytez[position++] = numSorted + 40;	//Num clients
-	bytez[position++] = level.teamScores[TEAM_RED] + 40; //Red score
-	bytez[position++] = level.teamScores[TEAM_BLUE] + 40; //Blue score
-	bytez[position++] = level.stats_picked + 40; //Weapons picked up for marquee minus gauntlet
+	bytez[position++] = numSorted;	//Num clients
+	bytez[position++] = level.teamScores[TEAM_RED]; //Red score
+	bytez[position++] = level.teamScores[TEAM_BLUE]; //Blue score
+	bytez[position++] = level.stats_picked; //Weapons picked up for marquee minus gauntlet
 
 	for (i=0 ; i < numSorted ; i++) {
 		int		ping = 0, time = 0, score = 0;
@@ -233,15 +291,15 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 		//FIXME: All + 64's need to be &= 64
 
 		time = ((level.time - cl->pers.enterTime)/60000);
-				bytez[position++] = level.sortedClients[i] + 40;	//ClientNum
+				bytez[position++] = level.sortedClients[i];	//ClientNum
 		switch ( ping ) {
 			case 999:
 				//-2
 				//G_Printf("DBG:LAG\n");
 				bytez[position++] = 127;						//Ping
 				bytez[position++] = 127;//Ping
-				bytez[position++] = time / 63 + 64;
-				bytez[position++] = time % 63 + 64;
+				bytez[position++] = time / 63;
+				bytez[position++] = time % 63;
 				break;
 				//When -2 only send the bare minimum to squeeze more into the string because the client has lagged out
 			case -1:
@@ -250,8 +308,8 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 				//G_Printf("DBG:CONN\n");
 				bytez[position++] = 127;						//Ping
 				bytez[position++] = 126;						//Ping
-				bytez[position++] = time / 63 + 64;
-				bytez[position++] = time % 63 + 64;
+				bytez[position++] = time / 63;
+				bytez[position++] = time % 63;
 				break;
 			default:
 				//Everyone else
@@ -260,10 +318,10 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 					case TEAM_SPECTATOR:
 						//G_Printf("DBG:SPEC\n");
 						//position++;
-						bytez[position++] = ping / 63 + 64;				//Ping
-						bytez[position++] = ping % 63 + 64;				//Ping
-						bytez[position++] = time / 63 + 64;
-						bytez[position++] = time % 63 + 64;
+						bytez[position++] = ping / 63;				//Ping
+						bytez[position++] = ping % 63;				//Ping
+						bytez[position++] = time / 63;
+						bytez[position++] = time % 63;
 						break;
 					default: //62
 						//G_Printf("DBG:PLAYER\n");
@@ -273,71 +331,71 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 							score *= -1;
 						}
 
-						bytez[position++] = ping / 63 + 64;				//Ping
-						bytez[position++] = ping % 63 + 64;				//Ping
-						bytez[position++] = time / 63 + 64;
-						bytez[position++] = time % 63 + 64;
-						bytez[position++] = cl->ps.persistant[PERS_SCORE] / 63 + 64;
-						bytez[position++] = cl->ps.persistant[PERS_SCORE] % 63 + 64;
-						bytez[position++] = scoreFlags / 63 + 64;
-						bytez[position++] = scoreFlags % 63 + 64;
-						bytez[position++] = g_entities[level.sortedClients[i]].s.powerups + 40; //This is not gonna work.
-						bytez[position++] = accuracy / 63 + 64;
-						bytez[position++] = accuracy % 63 + 64;
-						bytez[position++] = cl->ps.persistant[PERS_IMPRESSIVE_COUNT] / 63 + 64; //This needs to be sent why?
-						bytez[position++] = cl->ps.persistant[PERS_IMPRESSIVE_COUNT] % 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_EXCELLENT_COUNT] / 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_EXCELLENT_COUNT] % 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT] / 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT] % 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_DEFEND_COUNT] / 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_DEFEND_COUNT] % 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_ASSIST_COUNT] / 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_ASSIST_COUNT] % 63 + 64; // **
-						bytez[position++] = perfect + 40; //Move this
-						bytez[position++] = cl->ps.persistant[PERS_CAPTURES] / 63 + 64; // **
-						bytez[position++] = cl->ps.persistant[PERS_CAPTURES] % 63 + 64; //This needs to be sent why?
+						bytez[position++] = ping / 63;				//Ping
+						bytez[position++] = ping % 63;				//Ping
+						bytez[position++] = time / 63;
+						bytez[position++] = time % 63;
+						bytez[position++] = cl->ps.persistant[PERS_SCORE] / 63;
+						bytez[position++] = cl->ps.persistant[PERS_SCORE] % 63;
+						bytez[position++] = scoreFlags / 63;
+						bytez[position++] = scoreFlags % 63;
+						bytez[position++] = g_entities[level.sortedClients[i]].s.powerups; //This is not gonna work.
+						bytez[position++] = accuracy / 63;
+						bytez[position++] = accuracy % 63;
+						bytez[position++] = cl->ps.persistant[PERS_IMPRESSIVE_COUNT] / 63; //This needs to be sent why?
+						bytez[position++] = cl->ps.persistant[PERS_IMPRESSIVE_COUNT] % 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_EXCELLENT_COUNT] / 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_EXCELLENT_COUNT] % 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT] / 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_GAUNTLET_FRAG_COUNT] % 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_DEFEND_COUNT] / 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_DEFEND_COUNT] % 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_ASSIST_COUNT] / 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_ASSIST_COUNT] % 63; // **
+						bytez[position++] = perfect; //Move this
+						bytez[position++] = cl->ps.persistant[PERS_CAPTURES] / 63; // **
+						bytez[position++] = cl->ps.persistant[PERS_CAPTURES] % 63; //This needs to be sent why?
 						//Weapons
-						bytez[position++] = cl->pers.stats_shots[WP_GAUNTLET] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_GAUNTLET] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_MACHINEGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_MACHINEGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_SHOTGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_SHOTGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_GRENADE_LAUNCHER] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_GRENADE_LAUNCHER] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_ROCKET_LAUNCHER] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_ROCKET_LAUNCHER] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_LIGHTNING] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_LIGHTNING] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_RAILGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_RAILGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_PLASMAGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_PLASMAGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_BFG] / 63 + 64;
-						bytez[position++] = cl->pers.stats_shots[WP_BFG] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_GAUNTLET] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_GAUNTLET] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_MACHINEGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_MACHINEGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_SHOTGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_SHOTGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_GRENADE_LAUNCHER] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_GRENADE_LAUNCHER] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_ROCKET_LAUNCHER] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_ROCKET_LAUNCHER] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_LIGHTNING] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_LIGHTNING] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_RAILGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_RAILGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_PLASMAGUN] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_PLASMAGUN] % 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_BFG] / 63 + 64;
-						bytez[position++] = cl->pers.stats_hits[WP_BFG] % 63 + 64;
+						bytez[position++] = cl->pers.stats_shots[WP_GAUNTLET] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_GAUNTLET] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_MACHINEGUN] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_MACHINEGUN] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_SHOTGUN] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_SHOTGUN] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_GRENADE_LAUNCHER] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_GRENADE_LAUNCHER] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_ROCKET_LAUNCHER] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_ROCKET_LAUNCHER] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_LIGHTNING] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_LIGHTNING] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_RAILGUN] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_RAILGUN] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_PLASMAGUN] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_PLASMAGUN] % 63;
+						bytez[position++] = cl->pers.stats_shots[WP_BFG] / 63;
+						bytez[position++] = cl->pers.stats_shots[WP_BFG] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_GAUNTLET] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_GAUNTLET] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_MACHINEGUN] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_MACHINEGUN] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_SHOTGUN] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_SHOTGUN] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_GRENADE_LAUNCHER] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_GRENADE_LAUNCHER] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_ROCKET_LAUNCHER] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_ROCKET_LAUNCHER] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_LIGHTNING] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_LIGHTNING] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_RAILGUN] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_RAILGUN] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_PLASMAGUN] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_PLASMAGUN] % 63;
+						bytez[position++] = cl->pers.stats_hits[WP_BFG] / 63;
+						bytez[position++] = cl->pers.stats_hits[WP_BFG] % 63;
 						//
-						bytez[position++] = cl->ps.persistant[PERS_KILLED] / 63 + 64; //Not needed
-						bytez[position++] = cl->ps.persistant[PERS_KILLED] % 63 + 64; //Not needed
-						bytez[position++] = cl->pers.stats_specnum + 40; //Wrong area
+						bytez[position++] = cl->ps.persistant[PERS_KILLED] / 63; //Not needed
+						bytez[position++] = cl->ps.persistant[PERS_KILLED] % 63; //Not needed
+						bytez[position++] = cl->pers.stats_specnum; //Wrong area
 						break;
 				}
 		}

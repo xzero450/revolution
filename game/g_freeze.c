@@ -154,12 +154,14 @@ static void Body_Explode( gentity_t *self ) {
 		if ( VectorLength( point ) > 100 ) continue;
 		if ( is_spectator( e->client ) ) continue;
 		if ( !self->count ) {
-			if ( g_dmflags.integer & 1024 || g_gametype.integer == GT_CTF ) {
+			/*if ( g_dmflags.integer & 1024 ) {
 				self->count = level.time + 2000;
 			} else {
 				self->count = level.time + 3000;
 			}
-			G_Sound( self, CHAN_AUTO, self->noise_index );
+			G_Sound( self, CHAN_AUTO, self->noise_index );*/
+			self->count = self->freezeThawTime;
+			G_AddEvent(self, EV_WATER_CLEAR, self->freezeThawTime);
 
 			self->activator = e;
 		} else if ( self->count < level.time ) {
@@ -183,9 +185,12 @@ static void Body_Explode( gentity_t *self ) {
 
 			G_LogPrintf( "Kill: %i %i %i: %s killed %s by %s\n", e->s.number, self->target_ent->s.number, MOD_UNKNOWN, e->client->pers.netname, self->target_ent->client->pers.netname, "MOD_UNKNOWN" );
 			AddScore( e, self->s.pos.trBase, 1 );
-
+			
 			e->client->sess.wins++;
 			G_Damage( self, NULL, NULL, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
+		} else if ( self->count ) {
+			self->count -= 1000;
+			self->freezeThawTime -= 1000;
 		}
 		return;
 	}
@@ -322,9 +327,10 @@ static void Body_think( gentity_t *self ) {
 		//G_Printf("DBG:Freeze: return 3 - intermission\n");
 		return;
 	}
-	if ( level.time - self->timestamp > 150000 || ( ( g_dmflags.integer & 1024 || g_gametype.integer == GT_CTF ) && level.time - self->timestamp > 60000 ) ) {
-		player_free( self->target_ent );
-		TossBody( self );
+	if ( level.time >= self->target_ent->freezeThawTime || level.time - self->timestamp > 150000 || ( ( g_dmflags.integer & 1024 || g_gametype.integer == GT_CTF ) && level.time - self->timestamp > 60000 ) ) {
+		/*player_free( self->target_ent );
+		TossBody( self );*/
+		Body_free(self);//4/19/2013
 		//G_Printf("DBG:Freeze: return 4 - time checks\n");
 		return;
 	}
@@ -344,7 +350,9 @@ static void Body_think( gentity_t *self ) {
 		return;
 	}
 
-	if ( level.time - self->timestamp > 6500 ) {
+	//Test - auto-thaw fix?
+	if ( level.time >= self->target_ent->freezeThawTime ) {
+	//if ( level.time - self->timestamp > 6500 ) {
 		Body_free( self );
 	} else {
 		self->s.pos.trBase[ 2 ] -= 1;
@@ -396,9 +404,9 @@ qboolean DamageBody( gentity_t *targ, gentity_t *attacker, vec3_t dir, int mod, 
 
 			targ->pain_debounce_time = level.time;
 		}
-		if ( mod == MOD_GAUNTLET || mod == MOD_RAILGUN ) {
+		/*if ( mod == MOD_GAUNTLET || mod == MOD_RAILGUN ) {
 			FollowClient( targ, attacker );
-		}
+		}*/
 		return qtrue;
 	}
 	return qfalse;
@@ -536,7 +544,7 @@ static void CopyToBody( gentity_t *ent ) {
 	ent->target_ent = body;
 	body->s.otherEntityNum = ent->s.number;
 	//body->noise_index = G_SoundIndex( "sound/player/tankjr/jump1.wav" );
-	body->noise_index = G_SoundIndex( "*gasp.wav" );
+	//body->noise_index = G_SoundIndex( "*gasp.wav" );//FIXME: EV_WATER_CLEAR
 	body->freezeState = qtrue;
 	body->spawnflags = ent->client->sess.sessionTeam;
 	body->waterlevel = ent->waterlevel;
@@ -556,10 +564,16 @@ static qboolean NearbyBody( gentity_t *targ ) {
 	spot = NULL;
 	while ( ( spot = G_Find( spot, FOFS( classname ), "freezebody" ) ) != NULL ) {
 		if ( !spot->freezeState ) continue;
-		if ( spot->spawnflags != targ->client->sess.sessionTeam ) continue;
+		if ( spot->spawnflags != targ->client->sess.sessionTeam ) {
+			if ( level.time - spot->timestamp > 400  && spot->target_ent->freezeThawTime < level.time + (g_freezeAutothawTime.integer * 1000) ) {
+				spot->target_ent->freezeThawTime += 250;
+			}
+			continue;
+		}
 		VectorSubtract( spot->s.pos.trBase, targ->s.pos.trBase, delta );
 		if ( VectorLength( delta ) > 100 ) continue;
 		if ( level.time - spot->timestamp > 400 ) {
+			G_AddEvent(targ, EV_WATER_CLEAR, spot->freezeThawTime);
 			return qtrue;
 		}
 	}
@@ -568,10 +582,10 @@ static qboolean NearbyBody( gentity_t *targ ) {
 
 void player_freeze( gentity_t *self, gentity_t *attacker, int mod ) {
 
-	if ( g_gametype.integer < GT_TEAM ) {
+	//if ( g_gametype.integer < GT_TEAM ) {
 		//if we're not playing a team game, we're not playing freeze
-		return;
-	}
+	//	return;
+	//}
 
 	if ( self != attacker && (OnSameTeam(self, attacker) && !g_friendlyFire.integer) ) {
 		//can't freeze teammates without friendlyFire
@@ -602,7 +616,7 @@ void player_freeze( gentity_t *self, gentity_t *attacker, int mod ) {
 	//case MOD_FALLING:
 	//case MOD_SUICIDE:
 	case MOD_TARGET_LASER:
-	//case MOD_TRIGGER_HURT:
+	case MOD_TRIGGER_HURT:
 #ifdef MISSIONPACK
 	case MOD_JUICED:
 #endif
@@ -647,10 +661,7 @@ void team_wins( int team ) {
 		cl = e->client;
 		if ( !e->inuse ) continue;
 		if ( e->freezeState ) {
-			if ( //(!( g_dmflags.integer & 128 ) || 
-				(cl->sess.sessionTeam != team && g_freezeRoundRespawn.integer) 
-				||!g_freezeRoundRespawn.integer ) {
-				//Body_Explode( e );
+			if ( cl->sess.sessionTeam == team || g_freezeRoundRespawn.integer ) {
 				player_free( e );
 			}
 			continue;
@@ -693,7 +704,7 @@ void team_wins( int team ) {
 
 	if ( !level.warmupTime ) {
 		//Not in warmup
-	AddTeamScore( vec3_origin, team, 1 );
+		AddTeamScore( vec3_origin, team, 1 );
 	}
 	Team_ForceGesture( team );
 

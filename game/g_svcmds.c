@@ -1020,15 +1020,18 @@ void Svcmd_Help_f(void)
 
 	Com_sprintf(filename, sizeof(filename), "config/help/server/en.help.cfg");
 
-	if((length = trap_FS_FOpenFile(filename, &f, FS_READ)) <= 0)
+	length = trap_FS_FOpenFile(filename, &f, FS_READ);
+	if(length <= 0)
 	{
 		Com_Printf(""S_COLOR_RED"Loading en.help.cfg failed! Failed to open the file\n");
+		trap_FS_FCloseFile( f );//4/22/2013
 		return;
 	}
 
 	if(length >= MAX_HELP_FILE_SIZE)
 	{
 		Com_Printf(""S_COLOR_RED"Loading en.help.cfg failed! File too large\n");
+		trap_FS_FCloseFile( f );//4/22/2013
 		return;
 	}
 

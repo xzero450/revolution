@@ -735,6 +735,9 @@ typedef struct {
 	qboolean		eventAdjustment;
 	qboolean		dbgScoreboard;
 
+	//FreezeTag - temp?
+	int				freezeThawTime;
+
 	//aimtype4packet_t	rawPacket;
 } cg_t;
 
