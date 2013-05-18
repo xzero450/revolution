@@ -319,7 +319,6 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 				s += 2;
 				if((*s == ':') && Q_IsColorString( s+1 ))
 				{
-					//s++;
 					s += 3;
 				} 
 				//else if((*s  == ',') && Q_IsColorString( s+1 ) && !isStaticFade )
@@ -327,15 +326,12 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 				{
 					//This means we'll be fading across the name.
 					isStaticFade = qtrue;
-					//s += 3;
 					s += 2;
 					//if((*s  == ',') && Q_IsColorString( s+1 ) )
 					if ( Q_IsColorString(s) )
 					{
 						//This means we'll be fading across the name.
-						//s += 3;
 						s += 2;
-						//cnt += 3;
 					}
 				}
 				continue;
@@ -376,30 +372,23 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 	//Evo's fade hack hacked even further by spike
 	while(*s && (cnt < maxChars))
 	{
-		if ( Q_IsColorString( s ) )
-//		if(*s == '^' && *s+1 != '^')
+		if ( Q_IsColorString( s )|| (*s == '^' && *s+1 != '^') )
 		{
 			//change color
 			cnt_colors = 0;
 			memcpy(fadeColors[cnt_colors], g_color_table[ColorIndex(*(s + 1))], sizeof(vec4_t));
 			cnt_colors++;
 			s += 2;
-			//cnt += 2;
-
-			if ( (*s == ':') && Q_IsColorString( s+1 ) )
-//			if((*s == ':') && (*(s + 1) == '^' && *(s + 2) != '^') )
+			
+			if ( (*s == ':') && ( Q_IsColorString( s+1 ) || (*(s) == '^' && *(s + 1) != '^') ) )
 			{
 				//this means fade to the next color specified (if specified)
 				memcpy(fadeColors[cnt_colors], g_color_table[ColorIndex(*(s + 2))], sizeof(vec4_t));
 				cnt_colors++;
 				s += 3;
-				//cnt += 3;
-				//cnt++; //for continue
 				continue;
 			}
-			else if ( Q_IsColorString(s) && cnt_colors < 3 )
-			//else if ( (*s == ',') && Q_IsColorString( s+1 ) && cnt_colors < 3 )
-			//else if((*s  == ',') && (*(s + 1) == '^' && *(s + 2) != '^') && cnt_colors < 3  )
+			else if ( ( Q_IsColorString(s) || (*(s) == '^' && *(s + 1) != '^') ) && cnt_colors < 3 )
 			{
 				//This means we'll be fading across the name.
 				if (nameLength[0] > 2) {
@@ -411,12 +400,8 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 					fadeColors[3][2] = (fadeColors[0][2] - fadeColors[1][2]) / nameLength[0];
 					//
 					cnt_colors++;
-					//s += 3;
 					s += 2;
-					//cnt += 3;
-					if ( Q_IsColorString(s) && cnt_colors < 3 )
-					//if ( (*s == ',') && Q_IsColorString( s+1 ) && cnt_colors < 3 )
-					//if((*s  == ',') && (*(s + 1) == '^' && *(s + 2) != '^') && cnt_colors < 3  )
+					if ( ( Q_IsColorString(s) || (*(s) == '^' && *(s + 1) != '^') ) && cnt_colors < 3 )
 					{
 						//This means we'll be fading across the name.
 						if (cnt_colors == 2) {
@@ -436,27 +421,25 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 							//
 							cnt_colors++;
 							s += 2;
-							//s += 3;
-							//cnt += 3;
 						}
 					}
 					continue;
 				}
 			}
-			else if(*s == '\0')
-				break;
+			//else if(*s == '\0')
+				//break;
 			else
 				continue;
 		}
 
 		if(!forceColor)
 		{
-			if( /*cg_fontFade.integer &&*/ (cnt_colors > 1))
+			if( (cnt_colors > 1) )
 			{
 				//CG_Printf("cnt_colors: %i\n", cnt_colors);
 				if ( !isStaticFade ) {
 					//fade
-					CG_GetFadeTime();
+					fadeTime = CG_GetFadeTime();
 					num_state = fadeTime / FADE_RATE;
 					state = num_state % 4;
 
@@ -670,10 +653,10 @@ int CG_DrawStrlen( const char *str ) {
 	int count = 0;
 
 	while ( *s ) {
-		if ( Q_IsColorString( s ) ) {
+		if ( Q_IsColorString( s ) || ((*s == '^') && ((*s+1) != '^' )) ) {
 			s += 2;
 			//Shorten the length of the name for fontFades
-		} else if((*s == ':') && Q_IsColorString( s+1 )) {
+		} else if ((*s == ':') && Q_IsColorString( s+1 )) {
 					s += 3;
 		/*} else if((*s  == ',') && Q_IsColorString( s+1 ) ) {
 				//This means we'll be fading across the name.
