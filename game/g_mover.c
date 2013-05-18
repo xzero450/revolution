@@ -792,7 +792,7 @@ void Blocked_Door( gentity_t *ent, gentity_t *other ) {
 			return;
 		}
 //freeze
-		if ( g_gamemode.integer > 3 && is_body( other ) ) {
+		if ( g_gametype.integer == GT_FREEZE && is_body( other ) ) {
 			Body_free( other );
 			return;
 		}
@@ -826,10 +826,10 @@ static void Touch_DoorTriggerSpectator( gentity_t *ent, gentity_t *other, trace_
 	VectorClear(dir);
 	if (fabs(other->s.origin[axis] - ent->r.absmax[axis]) <
 		fabs(other->s.origin[axis] - ent->r.absmin[axis])) {
-		origin[axis] = ent->r.absmin[axis] - 20;//10
+		origin[axis] = ent->r.absmin[axis] - 15;//10
 		dir[axis] = -1;
 	} else {
-		origin[axis] = ent->r.absmax[axis] + 20;//10
+		origin[axis] = ent->r.absmax[axis] + 15;//10
 		dir[axis] = 1;
 	}
 	for (i = 0; i < 3; i++) {
@@ -849,8 +849,8 @@ void Touch_DoorTrigger( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 /*freeze
 	if ( other->client && other->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && other->client && is_spectator( other->client )) || 
-		 (g_gamemode.integer < 4 && other->client && other->client->sess.sessionTeam == TEAM_SPECTATOR) ) {
+	if ( (/*g_gametype.integer == GT_FREEZE && other->client && is_spectator( other->client )) || 
+		 (g_gametype.integer != GT_FREEZE &&*/ other->client && other->client->sess.sessionTeam == TEAM_SPECTATOR) ) {
 //freeze
 		// if the door is not open and not opening
 		if ( ent->parent->moverState != MOVER_1TO2 &&

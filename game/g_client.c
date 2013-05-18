@@ -484,7 +484,7 @@ void respawn( gentity_t *ent ) {
 	gentity_t	*tent;
 
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		if ( Set_spectator( ent ) ) return;
 	}
 //freeze
@@ -1255,10 +1255,10 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	//}
 	G_ReadSessionData( client );
 //freeze
-	if ( g_gamemode.integer > 3 ) {
-		if ( g_gametype.integer != GT_TOURNAMENT ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
+		/*if ( g_gametype.integer != GT_TOURNAMENT ) {
 			client->sess.wins = 0;
-		}
+		}*/
 		ent->freezeState = qfalse;
 		ent->readyBegin = qfalse;
 	}
@@ -1462,10 +1462,10 @@ void ClientSpawn(gentity_t *ent) {
 	// find a spawn point
 	// do it before setting health back up, so farthest
 	// ranging doesn't count this client
-	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) {
+	if ( client->sess.sessionTeam == TEAM_SPECTATOR  ) {
 		spawnPoint = SelectSpectatorSpawnPoint ( 
 						spawn_origin, spawn_angles);
-	} else if (g_gametype.integer >= GT_CTF ) {
+	} else if (g_gametype.integer >= GT_CTF && g_gametype.integer != GT_FREEZE ) {
 		// all base oriented team games use the CTF spawn points
 		spawnPoint = SelectCTFSpawnPoint ( 
 						client->sess.sessionTeam, 
@@ -1607,7 +1607,7 @@ void ClientSpawn(gentity_t *ent) {
 			client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_MACHINEGUN );
 			level.stats_picked |= (1 << (WP_MACHINEGUN - 1));
 
-			if ( g_gamemode.integer == 1 || g_gamemode.integer == 5 ) {
+			if ( g_gamemode.integer == 1 ) {
 				client->ps.ammo[WP_MACHINEGUN] = INFINITE;
 			} else if ( g_gametype.integer == GT_TEAM ) {
 				client->ps.ammo[WP_MACHINEGUN] = 50;
@@ -1647,8 +1647,8 @@ void ClientSpawn(gentity_t *ent) {
 /*freeze
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( ( g_gamemode.integer > 3 && is_spectator( client ) ) || 
-		( g_gamemode.integer < 4 && ent->client->sess.sessionTeam == TEAM_SPECTATOR ) ) {
+	if ( ( g_gametype.integer == GT_FREEZE && is_spectator( client ) ) || 
+		( g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR ) ) {
 //freeze
 
 	} else {
@@ -1689,10 +1689,10 @@ freeze*/
 			}
 		}
 //freeze
-		if ( g_gamemode.integer == 4 && client->ps.stats[ STAT_WEAPONS ] & ( 1 << WP_ROCKET_LAUNCHER ) ) {
+/*		if ( g_gamemode.integer == 4 && client->ps.stats[ STAT_WEAPONS ] & ( 1 << WP_ROCKET_LAUNCHER ) ) {
 			client->ps.weapon = WP_ROCKET_LAUNCHER;
 		}
-/*
+
 		if ( g_startArmor.integer > 0 ) {
 			client->ps.stats[ STAT_ARMOR ] += g_startArmor.integer;
 			if ( client->ps.stats[ STAT_ARMOR ] > client->ps.stats[ STAT_MAX_HEALTH ] * 2 ) {
@@ -1712,8 +1712,8 @@ freeze*/
 /*freeze
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && !is_spectator( client )) || 
-		(g_gamemode.integer < 4 && ent->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
+	if ( (g_gametype.integer == GT_FREEZE && !is_spectator( client )) || 
+		(g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 		BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
 		VectorCopy( ent->client->ps.origin, ent->r.currentOrigin );
@@ -1774,8 +1774,8 @@ void ClientDisconnect( int clientNum ) {
 /*freeze
 		if ( level.clients[i].sess.sessionTeam == TEAM_SPECTATOR
 freeze*/
-		if ( (g_gamemode.integer > 3 && is_spectator( &level.clients[ i ]) || 
-			(g_gamemode.integer < 4 && level.clients[i].sess.sessionTeam == TEAM_SPECTATOR) )
+		if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ i ]) || 
+			(g_gametype.integer != GT_FREEZE && level.clients[i].sess.sessionTeam == TEAM_SPECTATOR) )
 //freeze
 			&& level.clients[i].sess.spectatorState == SPECTATOR_FOLLOW
 			&& level.clients[i].sess.spectatorClient == clientNum ) {

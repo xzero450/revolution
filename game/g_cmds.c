@@ -143,7 +143,7 @@ void DeathmatchScoreboardMessage( gentity_t *ent ) {
 		perfect = ( cl->ps.persistant[PERS_RANK] == 0 && cl->ps.persistant[PERS_KILLED] == 0 ) ? 1 : 0;
 	
 //freeze
-		if ( g_gamemode.integer > 3 ) {
+		if ( g_gametype.integer == GT_FREEZE ) {
 			scoreFlags = cl->sess.wins;
 		}
 //freeze
@@ -282,7 +282,7 @@ void Cmd_NewScore_f( gentity_t *ent ) {
 		perfect = ( cl->ps.persistant[PERS_RANK] == 0 && cl->ps.persistant[PERS_KILLED] == 0 ) ? 1 : 0;
 	
 //freeze
-		if ( g_gamemode.integer > 3 ) {
+		if ( g_gametype.integer == GT_FREEZE ) {
 			scoreFlags = cl->sess.wins;
 		}
 //freeze
@@ -963,8 +963,8 @@ void Cmd_Kill_f( gentity_t *ent ) {
 /*freeze
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && is_spectator( ent->client )) || 
-		(g_gamemode.integer < 4 && ent->client->sess.sessionTeam == TEAM_SPECTATOR)) {
+	if ( (g_gametype.integer == GT_FREEZE && is_spectator( ent->client )) || 
+		(g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR)) {
 //freeze
 		return;
 	}
@@ -1187,7 +1187,7 @@ to free floating spectator mode
 */
 void StopFollowing( gentity_t *ent ) {
 	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;	
-	/*freeze*/if ( g_gamemode.integer < 4 ) {
+	/*freeze*/if ( g_gametype.integer != GT_FREEZE ) {
 	ent->client->sess.sessionTeam = TEAM_SPECTATOR;	
 	}
 /*freeze*/
@@ -1195,7 +1195,7 @@ void StopFollowing( gentity_t *ent ) {
 	ent->client->ps.stats[ STAT_HEALTH ] = ent->health = 100;
 	memset( ent->client->ps.powerups, 0, sizeof ( ent->client->ps.powerups ) );
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 	ent->client->sess.spectatorState = SPECTATOR_FREE;
 	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
 	ent->r.svFlags &= ~SVF_BOT;
@@ -1247,7 +1247,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 	}
 
 //freeze
-	if ( g_gamemode.integer > 3 && ent->freezeState ) {
+	if ( g_gametype.integer == GT_FREEZE && ent->freezeState ) {
 		if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
 			StopFollowing( ent );
 		}
@@ -1302,13 +1302,13 @@ void Cmd_Follow_f( gentity_t *ent ) {
 
 	// can't follow another spectator
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		if ( ent->freezeState && !is_spectator( ent->client ) ) return;
 	} else {
 		if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR && level.clients[ i ].sess.sessionTeam != ent->client->sess.sessionTeam ) return;
-		}
-	if ( (g_gamemode.integer > 3 && is_spectator( &level.clients[ i ] )) ||
-		(g_gamemode.integer < 4 && level.clients[ i ].sess.sessionTeam == TEAM_SPECTATOR) ) {
+	}
+	if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ i ] )) ||
+		(g_gametype.integer != GT_FREEZE && level.clients[ i ].sess.sessionTeam == TEAM_SPECTATOR) ) {
 /*freeze
 	if ( level.clients[ i ].sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
@@ -1340,8 +1340,8 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 	int		original;
 
 //freeze
-	if ( g_gamemode.integer > 3 ) {
-		if ( ent->freezeState && !is_spectator( ent->client ) ) return;
+	if ( g_gametype.integer == GT_FREEZE ) {
+		if ( ent->freezeState) return;
 		if ( Set_Client( ent ) ) return;
 	}
 //freeze
@@ -1377,26 +1377,26 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 
 		// can't follow another spectator
 //freeze
-		if ( g_gamemode.integer > 3 ) {
-		if ( &level.clients[ clientnum ] == ent->client ) {
-			if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
-				StopFollowing( ent );
-				ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
-				ent->client->ps.pm_time = 100;
-				return;
+		if ( g_gametype.integer == GT_FREEZE ) {
+			if ( g_entities[ clientnum ].freezeState ) continue;
+			if ( &level.clients[ clientnum ] == ent->client ) {
+				if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
+					StopFollowing( ent );
+					ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
+					ent->client->ps.pm_time = 100;
+					return;
+				}
 			}
-		}
-		if ( g_entities[ clientnum ].freezeState ) continue;
 		} else {
-		if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR && level.clients[ clientnum ].sess.sessionTeam != ent->client->sess.sessionTeam ) continue;
-		}
-		if ( (g_gamemode.integer > 3 && is_spectator( &level.clients[ clientnum ] )) || 
-			(g_gamemode.integer < 4 && level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR) ) {
-/*freeze
-		if ( level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR ) {
-freeze*/
-			continue;
-		}
+			if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR && level.clients[ clientnum ].sess.sessionTeam != ent->client->sess.sessionTeam ) continue;
+			}
+	/*		if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ clientnum ] )) || 
+				(g_gametype.integer != GT_FREEZE && level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR) ) {
+	freeze*/
+			if ( level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR ) {
+	//freeze
+				continue;
+			}
 
 		// this is good, we can use it
 		ent->client->sess.spectatorClient = clientnum;
@@ -2874,7 +2874,7 @@ void Cmd_Stats_f( int clientNum ) {
 
 	trap_SendServerCommand( clientNum, va("print \"\n\""));
 
-	if ( g_gamemode.integer == 0 || g_gamemode.integer == 2 || g_gamemode.integer == 4 || ((g_gamemode.integer == 1 || g_gamemode.integer == 5) && !(weap_allowed.integer == 64 || weap_allowed.integer == 65)) ) {
+	if ( g_gamemode.integer == 0 || g_gamemode.integer == 2 || ((g_gamemode.integer == 1) && !(weap_allowed.integer == 64 || weap_allowed.integer == 65)) ) {
 		if ( g_gametype.integer == GT_CTF ) {
 				trap_SendServerCommand( clientNum, va("print \""S_COLOR_WHITE"Player \n  Gt      Mg     Sg      Gl    Rl     Lg     Rg     Pg     BFG  Returns/Caps\n\""));
 			} else {
@@ -2907,7 +2907,7 @@ void Cmd_Stats_f( int clientNum ) {
 				}
 			}
 		}
-	} else if ( (g_gamemode.integer == 1 || g_gamemode.integer == 5) && (weap_allowed.integer == 64 || weap_allowed.integer == 65) ) {
+	} else if ( (g_gamemode.integer == 1 ) && (weap_allowed.integer == 64 || weap_allowed.integer == 65) ) {
 		//instagib
 		if ( g_gametype.integer == GT_CTF ) {
 			trap_SendServerCommand( clientNum, va("print \""S_COLOR_WHITE"Player                Hits  Shots  Accuracy  Railjumps  Frags  Returns/Caps\n\""));

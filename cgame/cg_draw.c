@@ -595,7 +595,7 @@ void CG_DrawHead( float x, float y, float w, float h, int clientNum, vec3_t head
 		CG_DrawPic( x, y, w, h, cgs.media.deferShader );
 //freeze
 		//Add a Frozen text draw here instead
-	} else if ( g_gamemode.integer > 3 && Q_Isfreeze( clientNum ) ) {
+	} else if ( cgs.gametype == GT_FREEZE && Q_Isfreeze( clientNum ) ) {
 		//CG_DrawPic( x, y, w, h, cgs.media.noammoShader );(y+((h*.5)-6))
 		CG_DrawStringExt( x, y, "Frozen", colorCyan, qfalse, qfalse, 10, 12, 0, w, -1 );
 //freeze
@@ -1351,7 +1351,7 @@ static float CG_DrawTeamOverlay( float y, qboolean right, qboolean upper ) {
 			}
 			for (j = 0; j <= PW_NUM_POWERUPS; j++) {
 //freeze
-				if ( g_gamemode.integer > 3 ) {
+				if ( cgs.gametype == GT_FREEZE ) {
 					if ( Q_Isfreeze( ci - cgs.clientinfo ) ) {
 						CG_DrawPic( xx, y, TINYCHAR_WIDTH, TINYCHAR_HEIGHT, cgs.media.noammoShader );
 						break;
@@ -1592,7 +1592,7 @@ static float CG_DrawScores( float y ) {
 			}
 		}
 #endif
-		if ( cgs.gametype >= GT_CTF || g_gamemode.integer >= 4 ) {
+		if ( cgs.gametype >= GT_CTF /*|| g_gamemode.integer >= 4*/ ) {
 			v = cgs.capturelimit;
 		} else {
 			v = cgs.fraglimit;
@@ -2503,7 +2503,7 @@ void CG_ScanForCrosshairEntity( void ) {
 		cg.snap->ps.clientNum, CONTENTS_SOLID|CONTENTS_BODY );
 	if ( trace.entityNum >= MAX_CLIENTS ) {
 //freeze
-		if ( g_gamemode.integer > 3 ) {
+		if ( cgs.gametype == GT_FREEZE ) {
 			entityState_t	*es;
 
 			es = &cg_entities[ trace.entityNum ].currentState;
@@ -4841,12 +4841,6 @@ static void CG_Draw2D( void ) {
 
 					CG_DrawKeyPress(draw_keys, x, y, keyColor, fontColor, size);
 				}
-			}
-			
-
-			if ( (g_gamemode.integer == 4 || g_gamemode.integer == 5) && cg.freezeThawTime && cg.freezeThawTime < cg.time) {
-
-				CG_FillRect(200, 400, 72 - ((cg.freezeThawTime - cg.time) / 72), 8, colorCyan);
 			}
 
 		// don't draw any status if dead or the scoreboard is being explicitly shown

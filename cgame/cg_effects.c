@@ -534,7 +534,7 @@ void CG_LaunchGib( vec3_t origin, vec3_t velocity, qhandle_t hModel ) {
 	le->leBounceSoundType = LEBS_BLOOD;
 	le->leMarkType = LEMT_BLOOD;
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( cgs.gametype == GT_FREEZE ) {
 		for ( num = 0; num < cg.snap->numEntities; num++ ) {
 			cent = &cg_entities[ cg.snap->entities[ num ].number ];
 			if ( cent->currentState.eventParm != 255 ) continue;

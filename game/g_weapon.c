@@ -450,7 +450,7 @@ void Bullet_Fire (gentity_t *ent, float spread, int damage ) {
 				ent->client->accuracy_hits++;
 			}
 //freeze
-		} else if ( g_gamemode.integer > 3 && is_body( traceEnt ) ) {
+		} else if ( g_gametype.integer == GT_FREEZE && is_body( traceEnt ) ) {
 			tent = G_TempEntity( tr.endpos, EV_BULLET_HIT_FLESH );
 			tent->s.eventParm = traceEnt->s.number;
 //freeze
@@ -1224,16 +1224,14 @@ void weapon_railgun_fire (gentity_t *ent) {
 	} else {
 		// check for "impressive" reward sound
 		ent->client->accurateCount += hits;
-		if ( ent->client->accurateCount >= 2 && 
-			!(g_gamemode.integer == 1 || g_gamemode.integer == 5) ) {
+		if ( ent->client->accurateCount >= 2 &&  g_gamemode.integer != 1 ) {
 			ent->client->accurateCount -= 2;
 			ent->client->ps.persistant[PERS_IMPRESSIVE_COUNT]++;
 			// add the sprite over the player's head
 			ent->client->ps.eFlags &= ~(EF_AWARD_IMPRESSIVE | EF_AWARD_EXCELLENT | EF_AWARD_GAUNTLET | EF_AWARD_ASSIST | EF_AWARD_DEFEND | EF_AWARD_CAP );
 			ent->client->ps.eFlags |= EF_AWARD_IMPRESSIVE;
 			ent->client->rewardTime = level.time + REWARD_SPRITE_TIME;
-		} else if ( ent->client->accurateCount >= 3 && 
-			(g_gamemode.integer == 1 || g_gamemode.integer == 5) ) {
+		} else if ( ent->client->accurateCount >= 3 && g_gamemode.integer == 1 ) {
 				gentity_t	*tempEnt2;
 				//FIXME: Evo: This probably needs to get broken to work with s_announcer
 				tempEnt2 = G_TempEntity( ent->s.origin, EV_GLOBAL_SOUND );
@@ -1547,7 +1545,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 				ent->client->accuracy_hits++;
 			}
 //freeze
-		} else if ( g_gamemode.integer > 3 && is_body( traceEnt ) ) {
+		} else if ( g_gametype.integer == GT_FREEZE/*g_gamemode.integer > 3*/ && is_body( traceEnt ) ) {
 			tent = G_TempEntity( tr.endpos, EV_MISSILE_HIT );
 			tent->s.otherEntityNum = traceEnt->s.number;
 			tent->s.eventParm = DirToByte( tr.plane.normal );

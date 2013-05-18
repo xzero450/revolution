@@ -276,7 +276,7 @@ void	G_TouchTriggers( gentity_t *ent ) {
 		if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
 		//if ( is_spectator( ent->client ) ) {
-		if ( (g_gamemode.integer > 3 && is_spectator(ent->client)) || (g_gamemode.integer < 4 && ent->client->sess.sessionTeam == TEAM_SPECTATOR) ) {
+		if ( (g_gametype.integer == GT_FREEZE && is_spectator(ent->client)) || (g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR) ) {
 //freeze
 			if ( hit->s.eType != ET_TELEPORT_TRIGGER &&
 				// this is ugly but adding a new ET_? type will
@@ -388,7 +388,7 @@ void SpectatorThink( gentity_t *ent, usercmd_t *ucmd ) {
 		Cmd_FollowCycle_f( ent, 1 );
 	}
 //freeze
-	else if (g_gamemode.integer > 3) {
+	else if (g_gametype.integer == GT_FREEZE) {
 		respawnSpectator( ent );
 	}
 //freeze
@@ -418,7 +418,7 @@ qboolean ClientInactivityTimer( gclient_t *client ) {
 		client->inactivityWarning = qfalse;
 	} else if ( !client->pers.localClient ) {
 //freeze
-		if ( g_gamemode.integer > 3 ) {
+		if ( g_gametype.integer == GT_FREEZE ) {
 			if ( g_entities[ client->ps.clientNum ].freezeState ) {
 				return qtrue;
 			}
@@ -985,7 +985,7 @@ void ClientThink_real( gentity_t *ent, int forced ) {
 /*freeze
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && is_spectator( client )) || (g_gamemode.integer < 4 && client->sess.sessionTeam == TEAM_SPECTATOR) ) {
+	if ( (g_gametype.integer == GT_FREEZE && ent->freezeState) ||  client->sess.sessionTeam == TEAM_SPECTATOR ) {
 //freeze
 		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD ) {
 			return;
@@ -1720,18 +1720,18 @@ void SpectatorClientEndFrame( gentity_t *ent ) {
 /*freeze
 			if ( cl->pers.connected == CON_CONNECTED && cl->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-			if ( (g_gamemode.integer > 3 && cl->pers.connected == CON_CONNECTED && !is_spectator( cl )) || 
-				(g_gamemode.integer < 4 && cl->pers.connected == CON_CONNECTED && cl->sess.sessionTeam != TEAM_SPECTATOR) ) {
+			if ( (g_gametype.integer == GT_FREEZE && cl->pers.connected == CON_CONNECTED && !is_spectator( cl )) || 
+				(g_gametype.integer != GT_FREEZE && cl->pers.connected == CON_CONNECTED && cl->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 				flags = (cl->ps.eFlags & ~(EF_VOTED | EF_TEAMVOTED)) | (ent->client->ps.eFlags & (EF_VOTED | EF_TEAMVOTED));
 				//cl->pers.realPing = cl->ps.ping;
 				//ent->client->pers.realPing = ent->client->ps.ping;
 				//G_Printf("%i %i", ent->client->pers.realPing, ent->client->ps.ping);
 /*freeze*/
-				if ( g_gamemode.integer < 4 ) {
-				ent->client->ps = cl->ps;
-				/*freeze*/		} else {
-				Persistant_spectator( ent, cl );
+				if ( g_gametype.integer != GT_FREEZE ) {
+					ent->client->ps = cl->ps;
+/*freeze*/		} else {
+					Persistant_spectator( ent, cl );
 				}
 //freeze
 				//G_Printf("%i %i", ent->client->pers.realPing, ent->client->ps.ping);
@@ -1744,11 +1744,11 @@ freeze*/
 			} else {
 				// drop them to free spectators unless they are dedicated camera followers
 				if ( ent->client->sess.spectatorClient >= 0 ) {
-					/*freeze*/	if ( g_gamemode.integer < 4 ) {
-					ent->client->sess.spectatorState = SPECTATOR_FREE;
-					ClientBegin( ent->client - level.clients );
-					/*freeze*/} else {
-					StopFollowing( ent );
+		/*freeze*/	if ( g_gametype.integer != GT_FREEZE ) {
+						ent->client->sess.spectatorState = SPECTATOR_FREE;
+						ClientBegin( ent->client - level.clients );
+		/*freeze*/  } else {
+						StopFollowing( ent );
 					}
 //freeze
 				}
@@ -1790,8 +1790,8 @@ void ClientEndFrame( gentity_t *ent ) {
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
 	ent->client->pers.stats_specnum = 0;
-	if ( ( g_gamemode.integer > 3 && is_spectator( ent->client ) ) || 
-		( g_gamemode.integer < 4 && ent->client->sess.sessionTeam == TEAM_SPECTATOR )) {
+	if ( ( g_gametype.integer == GT_FREEZE && is_spectator( ent->client ) ) || 
+		( g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR )) {
 //freeze
 		SpectatorClientEndFrame( ent );
 		return;

@@ -233,19 +233,19 @@ void CG_DrawInformation( void ) {
 		s = "Tournament";
 		break;
 	case GT_TEAM:
-		if ( g_gamemode.integer < 4 ) {
+		//if ( g_gamemode.integer < 4 ) {
 			s = "Team Deathmatch";
-		} else {
-			s = "Freeze Tag";
-		}
+		//} else {
+		//	s = "Freeze Tag";
+		//}
 //freeze
 		break;
 	case GT_CTF:
-		if ( g_gamemode.integer < 4 ) {
+		//if ( g_gamemode.integer < 4 ) {
 			s = "Capture The Flag";
-		} else {
-			s = "Freeze Tag CTF";
-		}
+		//} else {
+		//	s = "Freeze Tag CTF";
+		//}
 //freeze
 		break;
 #ifdef MISSIONPACK
@@ -259,6 +259,9 @@ void CG_DrawInformation( void ) {
 		s = "Harvester";
 		break;
 #endif
+	case GT_FREEZE:
+		s = "Freeze Tag";
+		break;
 	default:
 		s = "Unknown Gametype";
 		break;
@@ -279,8 +282,8 @@ void CG_DrawInformation( void ) {
 	}
 
 
-	//if (cgs.gametype < GT_CTF ) {
-	if ( (g_gamemode.integer > 3 && cgs.gametype < GT_TEAM) || (g_gamemode.integer < 4 && cgs.gametype < GT_CTF) ) {
+	if (cgs.gametype < GT_CTF ) {
+	//if ( (g_gamemode.integer > 3 && cgs.gametype < GT_TEAM) || (g_gamemode.integer < 4 && cgs.gametype < GT_CTF) ) {
 //freeze
 		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
 		if ( value ) {
@@ -291,8 +294,8 @@ void CG_DrawInformation( void ) {
 	}
 
 
-//	if (cgs.gametype >= GT_CTF) {
-	if ( (g_gamemode.integer > 3 && cgs.gametype >= GT_TEAM) || (g_gamemode.integer < 4 && cgs.gametype >= GT_CTF) ) {
+	if (cgs.gametype >= GT_CTF) {
+//	if ( (g_gamemode.integer > 3 && cgs.gametype >= GT_TEAM) || (g_gamemode.integer < 4 && cgs.gametype >= GT_CTF) ) {
 //freeze
 		value = atoi( Info_ValueForKey( info, "capturelimit" ) );
 		if ( value ) {

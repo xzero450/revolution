@@ -418,7 +418,7 @@ void G_SpawnGEntityFromSpawnVars( void ) {
 /*freeze
 		if ( i ) {
 freeze*/
-		if ( (g_gamemode.integer < 4 && i) || (g_gamemode.integer > 3 && i && !( ent->classname && !Q_stricmp( ent->classname, "info_player_deathmatch" ) )) ) {
+		if ( (g_gametype.integer != GT_FREEZE && i) || (g_gametype.integer == GT_FREEZE && i && !( ent->classname && !Q_stricmp( ent->classname, "info_player_deathmatch" ) )) ) {
 //freeze
 			G_FreeEntity( ent );
 			return;

@@ -848,9 +848,9 @@ int Team_TouchOurFlag(gentity_t *ent, gentity_t *other, int team)
 
 	//freeze
 	//----------------
-	if((g_gamemode.integer > 3) && (g_gametype.integer == GT_CTF))
+	/*if((g_gamemode.integer > 3) && (g_gametype.integer == GT_CTF))
 		team_wins(team);
-
+*/
 	//----------------
 	//freeze
 
@@ -1271,7 +1271,7 @@ gentity_t *Team_GetLocation(gentity_t *ent)
 	bestlen = 3*8192.0*8192.0;
 
 //freeze
-	if ( g_gamemode.integer > 3 && ent->freezeState && is_body( ent->target_ent ) ) {
+	if ( g_gametype.integer == GT_FREEZE && ent->freezeState && is_body( ent->target_ent ) ) {
 		VectorCopy( ent->target_ent->r.currentOrigin, origin );
 	} else
 //freeze
@@ -1508,7 +1508,7 @@ void TeamplayInfoMessage( gentity_t *ent ) {
 			if (h < 0) h = 0;
 			if (a < 0) a = 0;
 //freeze
-			if ( g_gamemode.integer > 3 && player->freezeState ) {
+			if ( g_gametype.integer == GT_FREEZE && player->freezeState ) {
 				h = a = 0;
 			}
 //freeze
@@ -1580,7 +1580,7 @@ Only in CTF games.  Red players spawn here at game start.
 */
 void SP_team_CTF_redplayer( gentity_t *ent ) {
 //freeze
-	if ( g_gamemode.integer > 3 && g_gametype.integer == GT_TEAM ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		ent->classname = "info_player_deathmatch";
 	}
 //freeze
@@ -1592,7 +1592,7 @@ Only in CTF games.  Blue players spawn here at game start.
 */
 void SP_team_CTF_blueplayer( gentity_t *ent ) {
 //freeze
-	if ( g_gamemode.integer > 3 && g_gametype.integer == GT_TEAM ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		ent->classname = "info_player_deathmatch";
 	}
 //freeze

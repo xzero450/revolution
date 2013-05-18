@@ -64,8 +64,8 @@ void TeleportPlayer( gentity_t *player, vec3_t origin, vec3_t angles, qboolean s
 /*freeze
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && !is_spectator( player->client )) ||
-		 (g_gamemode.integer < 4 && player->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
+	if ( (/*g_gametype.integer == GT_FREEZE && !is_spectator( player->client )) ||
+		 (g_gametype.integer != GT_FREEZE &&*/ player->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 		tent = G_TempEntity( player->client->ps.origin, EV_PLAYER_TELEPORT_OUT );
 		tent->s.clientNum = player->s.clientNum;
@@ -105,8 +105,8 @@ freeze*/
 /*freeze
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && !is_spectator( player->client )) ||
-		 (g_gamemode.integer < 4 && player->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
+	if ( (/*g_gametype.integer == GT_FREEZE && !is_spectator( player->client )) ||
+		 (g_gametype.integer != GT_FREEZE &&*/ player->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 		G_KillBox (player);
 	}
@@ -120,8 +120,8 @@ freeze*/
 /*freeze
 	if ( player->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gamemode.integer > 3 && !is_spectator( player->client )) ||
-		 (g_gamemode.integer < 4 && player->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
+	if ( (/*g_gametype.integer == GT_FREEZE && !is_spectator( player->client )) ||
+		 (g_gametype.integer != GT_FREEZE &&*/ player->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 		trap_LinkEntity (player);
 	}

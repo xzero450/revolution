@@ -140,7 +140,7 @@ void CG_FragmentBounceMark( localEntity_t *le, trace_t *trace ) {
 
 		radius = 16 + (rand()&31);
 //freeze
-		if ( g_gamemode.integer > 3 && le->refEntity.customShader == cgs.media.freezeShader ) {
+		if ( cgs.gametype == GT_FREEZE && le->refEntity.customShader == cgs.media.freezeShader ) {
 			CG_ImpactMark( cgs.media.freezeMarkShader, trace->endpos, trace->plane.normal, random() * 360, 1, 1, 1, 1, qtrue, radius, qfalse );
 		} else {
 //freeze
@@ -246,7 +246,7 @@ void CG_AddFragment( localEntity_t *le ) {
 			oldZ = le->refEntity.origin[2];
 			le->refEntity.origin[2] -= 16 * ( 1.0 - (float)t / SINK_TIME );
 //freeze
-			if ( g_gamemode.integer > 3 ) {
+			if ( cgs.gametype == GT_FREEZE ) {
 			CG_AddGib( le );
 			}
 //freeze
@@ -254,7 +254,7 @@ void CG_AddFragment( localEntity_t *le ) {
 			le->refEntity.origin[2] = oldZ;
 		} else {
 //freeze
-			if ( g_gamemode.integer > 3 ) {
+			if ( cgs.gametype == GT_FREEZE ) {
 			CG_AddGib( le );
 			}
 //freeze
@@ -281,7 +281,7 @@ void CG_AddFragment( localEntity_t *le ) {
 		}
 
 //freeze
-		if ( g_gamemode.integer > 3 ) {
+		if ( cgs.gametype == GT_FREEZE ) {
 		CG_AddGib( le );
 		}
 //freeze
@@ -313,7 +313,7 @@ void CG_AddFragment( localEntity_t *le ) {
 	CG_ReflectVelocity( le, &trace );
 
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( cgs.gametype == GT_FREEZE ) {
 		CG_AddGib( le );
 	}
 //freeze

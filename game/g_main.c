@@ -250,7 +250,7 @@ static cvarTable_t		gameCvarTable[] = {
 	{ &g_smoothClients, "g_smoothClients", "2", CVAR_SERVERINFO, 0, qfalse},
 	{ &g_gamemode, "g_gamemode", "0", CVAR_SYSTEMINFO | CVAR_SERVERINFO | CVAR_LATCH, 0, qfalse },
 	{ &g_freezeRoundRespawn, "g_freezeRoundRespawn", "1", 0, 0, qfalse },
-	{ &g_freezeAutothawTime, "g_freezeAutothawTime", "6", 0, 0, qfalse },
+	{ &g_freezeAutothawTime, "g_freezeAutothawTime", "60", 0, 0, qfalse },
 	{ &g_allowLockedTeams, "g_allowLockedTeams", "0", 0, 0, qtrue },
 	{ &g_allowReady, "g_allowReady", "1", CVAR_SYSTEMINFO, 0, qtrue },
 	{ &g_readyGrace, "g_readyGrace", "5", 0, 0, qtrue },
@@ -1250,7 +1250,7 @@ void CalculateRanks( void ) {
 
 	// see if it is time to end the level
 /*freeze*/
-	if ( g_gamemode.integer < 4 ) {
+	if ( g_gametype.integer != GT_FREEZE ) {
 		CheckExitRules();
 	}
 /*freeze*/
@@ -1737,7 +1737,7 @@ void CheckExitRules( void ) {
 	gclient_t	*cl;
 
 	//freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		//FreezeBugs
 		CheckDelay();
 	}
@@ -1826,11 +1826,11 @@ void CheckExitRules( void ) {
 		}
 	}
 
-/*freeze
+
 	if ( g_gametype.integer >= GT_CTF && g_capturelimit.integer ) {
-freeze*/
-	if ( (g_gamemode.integer < 4 && g_gametype.integer >= GT_CTF && g_capturelimit.integer) || 
-		(g_gamemode.integer > 3 && g_gametype.integer >= GT_TEAM && g_capturelimit.integer) ) {
+//freeze - reverted 5.10.2013
+//	if ( (g_gamemode.integer < 4 && g_gametype.integer >= GT_CTF && g_capturelimit.integer) || 
+//		(g_gamemode.integer > 3 && g_gametype.integer >= GT_TEAM && g_capturelimit.integer) ) {
 //freeze
 
 		if ( level.teamScores[TEAM_RED] >= g_capturelimit.integer ) {
@@ -2179,7 +2179,7 @@ void G_RunFrame( int levelTime ) {
 
 	// get any cvar changes
 	G_UpdateCvars();
-	if ( g_pro_mode.integer && !level.cpm ) {
+	/*if ( g_pro_mode.integer && !level.cpm ) {
 		level.cpm = qtrue;
 		trap_Cvar_Set("g_quadfactor", "4" ); // pro mode default
 		trap_Cvar_Set("g_forcerespawn", "3" );
@@ -2191,7 +2191,7 @@ void G_RunFrame( int levelTime ) {
 		trap_Cvar_Set("g_forcerespawn", "20" );
 		trap_Cvar_Set("g_weaponrespawn", "5" );
 		trap_Cvar_Set("dmflags", va("%d", g_dmflags.integer & ~DF_NO_FOOTSTEPS)); // turn on footsteps
-	}
+	}*/
 
 	//
 	// go through all allocated objects

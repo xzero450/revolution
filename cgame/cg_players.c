@@ -910,7 +910,7 @@ static void CG_SetDeferredClientInfo( clientInfo_t *ci ) {
 				continue;
 			}
 			
-			if ( g_gamemode.integer < 4 ) {
+			if ( cgs.gametype != GT_FREEZE ) {
 				if ( Q_stricmp( ci->skinName, match->skinName ) ||
 					(cgs.gametype >= GT_TEAM && ci->team != match->team) ) {
 					continue;
@@ -1846,7 +1846,7 @@ static void CG_BreathPuffs( centity_t *cent, refEntity_t *head) {
 
 	ci = &cgs.clientinfo[ cent->currentState.number ];
 
-	if (g_gamemode.integer < 4) {
+	if (cgs.gametype != GT_FREEZE) {
 		return;
 	}
 

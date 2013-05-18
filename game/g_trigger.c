@@ -259,11 +259,11 @@ void trigger_teleporter_touch (gentity_t *self, gentity_t *other, trace_t *trace
 	}
 	// Spectators only?
 	if ( ( self->spawnflags & 1 ) && 
-/*freeze
+
 		other->client->sess.sessionTeam != TEAM_SPECTATOR ) {
-freeze*/
-		((g_gamemode.integer > 3 &&!is_spectator( other->client )) || (g_gamemode.integer < 4 && other->client->sess.sessionTeam != TEAM_SPECTATOR)) ) {
-//freeze
+/*freeze
+		((g_gametype.integer == GT_FREEZE && !is_spectator( other->client )) || (g_gametype.integer != GT_FREEZE && other->client->sess.sessionTeam != TEAM_SPECTATOR)) ) {
+freeze*///freeze
 		return;
 	}
 

@@ -430,7 +430,7 @@ static void target_location_linkup(gentity_t *ent)
 		return;
 
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		for ( i = 0, ent = g_entities; i < level.num_entities; i++, ent++ ) {
 			if ( ent->classname && !Q_stricmp( ent->classname, "target_location" ) ) {
 				if ( ent->count != 255 ) {
@@ -452,7 +452,7 @@ static void target_location_linkup(gentity_t *ent)
 			i++, ent++) {
 		if (ent->classname && !Q_stricmp(ent->classname, "target_location")) {
 //freeze
-			if ( g_gamemode.integer > 3 ) {
+			if ( g_gametype.integer == GT_FREEZE ) {
 				if ( ent->count == 255 ) {
 					if ( modified ) {
 						ent->think = G_FreeEntity;

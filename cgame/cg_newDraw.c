@@ -557,7 +557,7 @@ static void CG_DrawSelectedPlayerHead( rectDef_t *rect, qboolean draw2D, qboolea
   	if ( ci->deferred ) {
   		CG_DrawPic( rect->x, rect->y, rect->w, rect->h, cgs.media.deferShader );
 //freeze
-	} else if ( g_gamemode.integer > 3 && Q_Isfreeze( ci - cgs.clientinfo ) ) {
+	} else if ( cgs.gametype == GT_FREEZE && Q_Isfreeze( ci - cgs.clientinfo ) ) {
 		CG_DrawPic( rect->x, rect->y, rect->w, rect->h, cgs.media.noammoShader );
 //freeze
   	}
@@ -1296,7 +1296,7 @@ void CG_DrawNewTeamInfo(rectDef_t *rect, float text_x, float text_y, float scale
 			xx = rect->x + 1;
 			for (j = 0; j <= PW_NUM_POWERUPS; j++) {
 //freeze
-				if ( g_gamemode.integer > 3 ) {
+				if ( cgs.gametype == GT_FREEZE ) {
 					if ( Q_Isfreeze( ci - cgs.clientinfo ) ) {
 						CG_DrawPic( xx, y, PIC_WIDTH, PIC_WIDTH, cgs.media.noammoShader );
 						break;

@@ -317,11 +317,10 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		while ( *s && cnt < maxChars) {
 			if ( Q_IsColorString( s ) ) {
 				s += 2;
-				//cnt += 2;
 				if((*s == ':') && Q_IsColorString( s+1 ))
 				{
-					s++;
-					//cnt++;
+					//s++;
+					s += 3;
 				} 
 				//else if((*s  == ',') && Q_IsColorString( s+1 ) && !isStaticFade )
 				else if ( Q_IsColorString(s) && !isStaticFade )
@@ -330,7 +329,6 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 					isStaticFade = qtrue;
 					//s += 3;
 					s += 2;
-					//cnt += 3;
 					//if((*s  == ',') && Q_IsColorString( s+1 ) )
 					if ( Q_IsColorString(s) )
 					{

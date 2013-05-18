@@ -4,6 +4,12 @@ int	check_time;
 static vec3_t	redflag;
 static vec3_t	blueflag;
 
+/* 5.18.2013
+XZero450/Evolution: I'm really not sure what the exact point of this is. Begin attempt removal.
+Seems rather pointless to set them to TEAM_SPECTATOR when frozen, default into TEAM_SPECTATOR upon connect,
+and then run this check..
+It would make more sense to be checking if they're frozen and do away with the TEAM_SPECTATOR crap.
+*/
 qboolean is_spectator( gclient_t *client ) {
 	if ( client == NULL ) return qfalse;
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) return qtrue;
@@ -19,7 +25,7 @@ qboolean Set_spectator( gentity_t *ent ) {
 	if ( !ent->freezeState ) return qfalse;
 	if ( ent->r.svFlags & SVF_BOT ) {
 		ent->client->respawnTime = INT_MAX;
-	} else if ( !is_spectator( ent->client ) ) {
+	} else if ( ent->freezeState ) {//!is_spectator( ent->client ) ) {
 		VectorCopy( ent->r.currentOrigin, origin );
 		angles[ YAW ] = ent->client->ps.stats[ STAT_DEAD_YAW ];
 		angles[ PITCH ] = 0;
@@ -27,7 +33,9 @@ qboolean Set_spectator( gentity_t *ent ) {
 		ClientSpawn( ent );
 		VectorCopy( origin, ent->client->ps.origin );
 		SetClientViewAngle( ent, angles );
-		ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;
+		
+		//FIXME: !
+		//ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;
 		ent->client->sess.spectatorTime = level.time;
 		ent->client->sess.spectatorState = SPECTATOR_FREE;
 		ent->client->sess.spectatorClient = 0;
@@ -43,8 +51,8 @@ qboolean Set_Client( gentity_t *ent ) {
 
 	cl = ent->client;
 	if ( cl->ps.pm_type != PM_SPECTATOR ) return qfalse;
+	if ( !ent->freezeState ) return qfalse;
 	if ( cl->sess.sessionTeam == TEAM_SPECTATOR ) return qfalse;
-	if ( ent->freezeState ) return qfalse;
 
 	cl->sess.spectatorState = SPECTATOR_NOT;
 	cl->sess.spectatorClient = 0;
@@ -94,7 +102,7 @@ void Persistant_spectator( gentity_t *ent, gclient_t *cl ) {
 
 static void FollowClient( gentity_t *ent, gentity_t *other ) {
 	if ( ent->target_ent == other ) return;
-	if ( is_spectator( ent->target_ent->client ) ) {
+	if ( ent->target_ent->client->sess.sessionTeam == TEAM_SPECTATOR || ent->target_ent->freezeState ) { //is_spectator( ent->target_ent->client ) ) {
 		ent->target_ent->client->sess.spectatorState = SPECTATOR_FOLLOW;
 		ent->target_ent->client->sess.spectatorClient = other->s.number;
 	}
@@ -112,8 +120,13 @@ static void player_free( gentity_t *ent ) {
 	if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
 		//Stop following whomever and knock'em back a ways
 		StopFollowing( ent );
-		ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
-		ent->client->ps.pm_time = 100;
+		/*ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
+		ent->client->ps.pm_time = 100;*/
+		//Reset view angles?
+		VectorCopy( ent->r.mins, ent->target_ent->r.mins );
+		VectorCopy( ent->r.maxs, ent->target_ent->r.maxs );
+		VectorCopy( ent->r.absmin, ent->target_ent->r.absmin );
+		VectorCopy( ent->r.absmax, ent->target_ent->r.absmax );
 	}
 	//Set the inactivity/forceRespawn timer
 	ent->client->inactivityTime = level.time + g_inactivity.integer * 1000;
@@ -150,9 +163,10 @@ static void Body_Explode( gentity_t *self ) {
 		if ( !e->inuse ) continue;
 		if ( e->health < 1 ) continue;
 		if ( e->client->sess.sessionTeam != self->spawnflags ) continue;
+		if ( e->client->sess.sessionTeam != self->target_ent->client->sess.sessionTeam || e->client->sess.sessionTeam == TEAM_SPECTATOR) continue;
 		VectorSubtract( self->s.pos.trBase, e->s.pos.trBase, point );
 		if ( VectorLength( point ) > 100 ) continue;
-		if ( is_spectator( e->client ) ) continue;
+		//if ( is_spectator( e->client ) ) continue;
 		if ( !self->count ) {
 			/*if ( g_dmflags.integer & 1024 ) {
 				self->count = level.time + 2000;
@@ -160,8 +174,8 @@ static void Body_Explode( gentity_t *self ) {
 				self->count = level.time + 3000;
 			}
 			G_Sound( self, CHAN_AUTO, self->noise_index );*/
-			self->count = self->freezeThawTime;
-			G_AddEvent(self, EV_WATER_CLEAR, self->freezeThawTime);
+			self->count = self->target_ent->freezeThawTime;
+			G_AddEvent(self->target_ent, EV_WATER_CLEAR, 0);
 
 			self->activator = e;
 		} else if ( self->count < level.time ) {
@@ -170,9 +184,9 @@ static void Body_Explode( gentity_t *self ) {
 			} else if ( self->activator->health < 1 ) {
 			} else {
 				VectorSubtract( self->s.pos.trBase, self->activator->s.pos.trBase, point );
-				if ( VectorLength( point ) > 100 ) {
-				} else if ( is_spectator( self->activator->client ) ) {
-				} else {
+				if ( VectorLength( point ) <= 100 && self->activator->client->sess.sessionTeam != TEAM_SPECTATOR) {
+				//} else if ( is_spectator( self->activator->client ) ) {
+				//} else {
 					e = self->activator;
 				}
 			}
@@ -189,8 +203,10 @@ static void Body_Explode( gentity_t *self ) {
 			e->client->sess.wins++;
 			G_Damage( self, NULL, NULL, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
 		} else if ( self->count ) {
+			//Every frame knock a second, per teammate, off the time required to thaw.
 			self->count -= 1000;
 			self->freezeThawTime -= 1000;
+			continue;
 		}
 		return;
 	}
@@ -273,7 +289,7 @@ static void TossBody( gentity_t *self ) {
 	static int	n;
 
 	self->timestamp = level.time;
-	self->nextthink = level.time + 5000;
+	self->nextthink = level.time + 2500;//Was 5000
 #ifdef MISSIONPACK
 	if ( self->s.eFlags & EF_KAMIKAZE ) {
 		Kamikaze_DeathTimer( self );
@@ -350,9 +366,9 @@ static void Body_think( gentity_t *self ) {
 		return;
 	}
 
-	//Test - auto-thaw fix?
+	//Test - auto-thaw fix? <- !!
 	if ( level.time >= self->target_ent->freezeThawTime ) {
-	//if ( level.time - self->timestamp > 6500 ) {
+		//Release the player.
 		Body_free( self );
 	} else {
 		self->s.pos.trBase[ 2 ] -= 1;
@@ -592,7 +608,7 @@ void player_freeze( gentity_t *self, gentity_t *attacker, int mod ) {
 		return;
 	}
 
-	if ( self != attacker && g_gametype.integer == GT_CTF && redflag && blueflag ) {
+	/*if ( self != attacker && g_gametype.integer == GT_CTF && redflag && blueflag ) {
 		vec3_t	dist1, dist2;
 
 		VectorSubtract( redflag, self->s.pos.trBase, dist1 );
@@ -607,7 +623,7 @@ void player_freeze( gentity_t *self, gentity_t *attacker, int mod ) {
 				return;
 			}
 		}
-	}
+	}*/
 	switch ( mod ) {
 	case MOD_UNKNOWN:
 	case MOD_WATER:
@@ -633,7 +649,7 @@ void player_freeze( gentity_t *self, gentity_t *attacker, int mod ) {
 	self->takedamage = qfalse;
 	self->s.eType = ET_INVISIBLE;
 	self->r.contents = 0;
-	self->health = GIB_HEALTH;
+	//self->health = GIB_HEALTH;
 
 	if ( attacker->client && self != attacker && NearbyBody( self ) ) {
 		attacker->client->ps.persistant[ PERS_DEFEND_COUNT ]++;
@@ -684,7 +700,7 @@ void team_wins( int team ) {
 		}
 	}
 
-	if ( level.numPlayingClients < 2 || g_gametype.integer == GT_CTF ) {
+	if ( level.numPlayingClients < 2 || g_gametype.integer != GT_FREEZE ) {
 		return;
 	}
 
@@ -725,7 +741,7 @@ static qboolean CalculateScores( int team ) {
 			continue;
 		}
 		if ( e->client->pers.connected == CON_CONNECTING ) continue;
-		if ( ( e->health < 1 || is_spectator( e->client ) ) && level.time > e->client->respawnTime ) continue;
+		if ( ( e->health < 1 /*|| is_spectator( e->client )*/ ) && level.time > e->client->respawnTime ) continue;
 		return qfalse;
 	}
 	if ( modified ) {

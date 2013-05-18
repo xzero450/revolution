@@ -75,10 +75,10 @@ int Pickup_Powerup( gentity_t *ent, gentity_t *other ) {
   	if ( g_gametype.integer >= GT_TEAM && other->client->sess.sessionTeam == client->sess.sessionTeam  ) {
       continue;
     }
-//freeze
-	if ( g_gamemode.integer > 3 ) {
+//freeze - Should not hit this check because of ^--
+	/*if ( g_gametype.integer == GT_FREEZE ) {
 		if ( is_spectator( other->client ) ) continue;
-	}
+	}*/
 //freeze
 
 		// if too far away, no sound
@@ -549,7 +549,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 	}
 
 	//G_Printf("We're in Touch_Item\n");
-	if ( (g_gamemode.integer == 1 || g_gamemode.integer == 3 || g_gamemode.integer == 5) && ent->item->giType != IT_TEAM ) {
+	if ( (g_gamemode.integer == 1 || g_gamemode.integer == 3) && ent->item->giType != IT_TEAM ) {
 		//G_Printf("instagib return\n");
 		return;
 	}
@@ -564,7 +564,7 @@ void Touch_Item (gentity_t *ent, gentity_t *other, trace_t *trace) {
 		return;		// dead people can't pickup
 
 //freeze
-	if ( g_gamemode.integer > 3 ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		if ( other->freezeState ) {
 			return;
 		}
@@ -1115,7 +1115,7 @@ void G_SpawnItem (gentity_t *ent, gitem_t *item) {
 	ent->nextthink = level.time + FRAMETIME * 2;
 	ent->think = FinishSpawningItem;
 
-	if ( ((g_gamemode.integer == 1 || g_gamemode.integer == 3 || g_gamemode.integer == 5) && item->giType != IT_TEAM)/* || (g_gamemode.integer == 2 && (ent->item->giType != IT_TEAM || ent->item->giType != IT_WEAPON || ent->item->giType != IT_POWERUP) )*/ ) {
+	if ( ((g_gamemode.integer == 1 || g_gamemode.integer == 3) && item->giType != IT_TEAM)/* || (g_gamemode.integer == 2 && (ent->item->giType != IT_TEAM || ent->item->giType != IT_WEAPON || ent->item->giType != IT_POWERUP) )*/ ) {
 	//	ent->r.svFlags |= SVF_NOCLIENT;
 		ent->s.eFlags |= EF_NODRAW;
 	//	ent->r.contents = 0;
@@ -1194,7 +1194,7 @@ void G_BounceItem( gentity_t *ent, trace_t *trace ) {
 		G_SetOrigin( ent, trace->endpos );
 		ent->s.groundEntityNum = trace->entityNum;
 //freeze
-		if ( g_gamemode.integer > 3 && ent->pain_debounce_time < level.time - 700 ) {
+		if ( g_gametype.integer == GT_FREEZE && ent->pain_debounce_time < level.time - 700 ) {
 			ent->pain_debounce_time = level.time;
 			G_AddEvent( ent, EV_FALL_SHORT, 0 );
 		}
@@ -1249,7 +1249,7 @@ void G_RunItem( gentity_t *ent ) {
 		mask = MASK_PLAYERSOLID & ~CONTENTS_BODY;//MASK_SOLID;
 	}
 //freeze
-	if ( g_gamemode.integer > 3 && is_body_freeze( ent ) )
+	if ( g_gametype.integer == GT_FREEZE && is_body_freeze( ent ) )
 		trap_Trace( &tr, ent->r.currentOrigin, ent->r.mins, ent->r.maxs, origin, ent->s.number, mask );
 	else
 //freeze
@@ -1287,7 +1287,7 @@ void G_RunItem( gentity_t *ent ) {
 				Team_FreeEntity( ent );
 			} else {
 //freeze
-				if ( g_gamemode.integer > 3 ) {
+				if ( g_gametype.integer == GT_FREEZE ) {
 					if ( is_body( ent ) ) {
 						if ( level.time - ent->timestamp > 10000 ) {
 							Body_free( ent );

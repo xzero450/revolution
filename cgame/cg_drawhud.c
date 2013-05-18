@@ -819,7 +819,7 @@ void CG_DrawSuperTeamOverlay( int superhud, int i ) {
 
 		for (j = 0; j <= PW_NUM_POWERUPS; j++) {
 //freeze
-			if ( g_gamemode.integer > 3 ) {
+			if ( cgs.gametype == GT_FREEZE ) {
 				if ( Q_Isfreeze( ci - cgs.clientinfo ) ) {
 					CG_DrawPic( xx, y, hud[superhud].fontsize[0], hud[superhud].fontsize[1], cgs.media.noammoShader );
 					break;
@@ -926,7 +926,7 @@ static void CG_HDrawScores( int superhud ) {
 			}
 			break;
 		case Score_Limit:
-			if ( cgs.gametype >= GT_CTF || g_gamemode.integer >= 4 ) {
+			if ( cgs.gametype >= GT_CTF /*|| g_gamemode.integer >= 4*/ ) {
 				v = cgs.capturelimit;
 			} else {
 				v = cgs.fraglimit;

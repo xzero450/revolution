@@ -44,7 +44,7 @@ void AddScore( gentity_t *ent, vec3_t origin, int score ) {
 	ent->client->ps.persistant[PERS_SCORE] += score;
 /*freeze*/
 //encasing this if may have caused freezetag to blow up :S
-	if ( g_gamemode.integer < 4 && g_gametype.integer == GT_TEAM )
+	if ( g_gametype.integer == GT_TEAM )
 		level.teamScores[ ent->client->ps.persistant[PERS_TEAM] ] += score;
 /*freeze*/
 	CalculateRanks();
@@ -84,7 +84,7 @@ void TossClientItems( gentity_t *self ) {
 	
 	if ( weapon > WP_MACHINEGUN && weapon != WP_GRAPPLING_HOOK && 
 								//Allow dropping of weapons in baseq3 and railz.
-		self->client->ps.ammo[ weapon ] && (g_gamemode.integer == 0 || g_gamemode.integer == 4) ) {
+		self->client->ps.ammo[ weapon ] && g_gamemode.integer == 0 ) {
 		// find the item type for this weapon
 		item = BG_FindItemForWeapon( weapon );
 
@@ -93,9 +93,9 @@ void TossClientItems( gentity_t *self ) {
 	}
 
 	// drop all the powerups if not in teamplay
-	if ( (g_gamemode.integer < 5 && g_gametype.integer != GT_TEAM)) {
-		//Drop them with advanced damage
+	if ( g_gametype.integer != GT_TEAM ) {
 /*freeze*/
+		//Drop them with advanced damage
 		//if ( g_gamemode.integer < 4 && g_gametype.integer != GT_TEAM ) {
 /*freeze*/
 	{
@@ -665,8 +665,8 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 /*freeze
 		if ( client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-		if ( (g_gamemode.integer > 3 && !is_spectator( client )) || 
-			(g_gamemode.integer < 4 && client->sess.sessionTeam != TEAM_SPECTATOR) ) {
+		if ( (g_gametype.integer == GT_FREEZE && !is_spectator( client )) || 
+			(g_gametype.integer != GT_FREEZE && client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 			continue;
 		}
@@ -692,7 +692,7 @@ freeze*/
 	self->timeOfDeath = level.time;
 
 /*freeze*/
-	if ( g_gamemode.integer < 4 ) {
+	if ( g_gametype.integer != GT_FREEZE ) {
 		self->r.maxs[2] = -8;
 	}
 /*freeze*/
@@ -710,7 +710,7 @@ freeze*/
 	memset( self->client->ps.powerups, 0, sizeof(self->client->ps.powerups) );
 
 //freeze
-	if ( g_gamemode.integer > 3 && g_gametype.integer >= GT_TEAM ) {
+	if ( g_gametype.integer >= GT_FREEZE ) {
 		player_freeze( self, attacker, meansOfDeath );
 		if ( self->freezeState ) {
 			G_AddEvent( self, EV_DEATH1 + ( rand() % 3 ), killer );
@@ -1132,7 +1132,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 			return;
 		}
 //freeze
-		if ( g_gamemode.integer > 3 ) {
+		if ( g_gametype.integer == GT_FREEZE ) {
 			if ( !client ) {
 			//	if ( targ != attacker && level.time - client->respawnTime < 1000 ) return;
 			//} else {
@@ -1229,7 +1229,7 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		//If we're playing instagib, gib anything that isn't us, and is a direct hit.
 		//but if we don't meet all of those, "take" damage like normal.
 		//Same for Rocket and Rails(3) and insta-freeze(5)
-		if ( ((g_allowHandicap.integer && (attacker->client->pers.maxHealth == 100 || (targ->health - take < 1))) || !g_allowHandicap.integer ) && (g_gamemode.integer == 1 || g_gamemode.integer == 3 || g_gamemode.integer == 5) && 
+		if ( ((g_allowHandicap.integer && (attacker->client->pers.maxHealth == 100 || (targ->health - take < 1))) || !g_allowHandicap.integer ) && (g_gamemode.integer == 1 || g_gamemode.integer == 3) && 
 			( mod > MOD_UNKNOWN && mod <= MOD_BFG && mod != MOD_ROCKET_SPLASH && mod != MOD_GRENADE_SPLASH && mod != MOD_PLASMA_SPLASH ) ) {
 			//Hack: It makes it easier to work with knockback and stuff
 			targ->health = -666;

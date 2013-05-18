@@ -517,7 +517,7 @@ void G_KillBox (gentity_t *ent) {
 /*freeze
 		if ( !hit->client ) {
 freeze*/
-		if ( (g_gamemode.integer < 4 && !hit->client) || (g_gamemode.integer > 3 && !hit->client && !is_body_freeze( hit )) ) {
+		if ( (g_gametype.integer != GT_FREEZE && !hit->client) || (g_gametype.integer == GT_FREEZE && !hit->client && !is_body_freeze( hit )) ) {
 //freeze
 			continue;
 		}
