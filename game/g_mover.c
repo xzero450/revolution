@@ -850,7 +850,7 @@ void Touch_DoorTrigger( gentity_t *ent, gentity_t *other, trace_t *trace ) {
 	if ( other->client && other->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
 	if ( (/*g_gametype.integer == GT_FREEZE && other->client && is_spectator( other->client )) || 
-		 (g_gametype.integer != GT_FREEZE &&*/ other->client && other->client->sess.sessionTeam == TEAM_SPECTATOR) ) {
+		 (g_gametype.integer != GT_FREEZE &&*/ other->client && (other->client->sess.sessionTeam == TEAM_SPECTATOR || (g_gametype.integer == GT_FREEZE && other->freezeState)) ) ) {
 //freeze
 		// if the door is not open and not opening
 		if ( ent->parent->moverState != MOVER_1TO2 &&

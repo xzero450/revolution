@@ -19,7 +19,7 @@ float	cpm_Gauntletknockback = 1;
 float	cpm_MGbox = 50;
 float	cpm_MGdmg = 7;
 float	cpm_MGdmg_tp = 5;
-int		cpm_MGweapon = 100;
+int		cpm_MGweapon = 100; //FIXME: Useless?
 
 // Shotgun
 float	cpm_SSGdmg = 10;
@@ -120,7 +120,7 @@ void CPM_UpdateSettings(int num)
 	cpm_MGbox = 50;
 	cpm_MGdmg = 7;
 	cpm_MGdmg_tp = 5;
-	cpm_MGweapon = 100;
+	cpm_MGweapon = 100; //FIXME: Useless?
 
 	// vq3 ssg settings
 	cpm_SSGdmg = 10;

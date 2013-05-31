@@ -435,7 +435,7 @@ freeze*/
 //unlagged - client options
 	{ &cg_delag, "cg_delag", "1", CVAR_ARCHIVE | CVAR_USERINFO },
 	{ &cg_debugDelag, "cg_debugDelag", "0", CVAR_USERINFO | CVAR_CHEAT },
-	{ &cg_drawBBox, "cg_drawBBox", "0", CVAR_CHEAT },
+	{ &cg_drawBBox, "cg_drawBBox", "0", 0 },
 	{ &sv_fps, "sv_fps", "20", 0 },// this will be automagically copied from the server
 	{ &cg_projectileNudge, "cg_projectileNudge", "0", CVAR_ARCHIVE },
 	{ &cg_optimizePrediction, "cg_optimizePrediction", "1", CVAR_ARCHIVE },

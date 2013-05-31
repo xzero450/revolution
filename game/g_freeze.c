@@ -14,7 +14,7 @@ qboolean is_spectator( gclient_t *client ) {
 	if ( client == NULL ) return qfalse;
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) return qtrue;
 	if ( client->ps.persistant[ PERS_TEAM ] == TEAM_SPECTATOR ) return qtrue;
-	if ( client->sess.spectatorState == SPECTATOR_FOLLOW ) return qtrue;
+	if ( client->sess.spectatorState == (SPECTATOR_FOLLOW /*|| SPECTATOR_FREE*/) ) return qtrue;
 	return qfalse;
 }
 
@@ -51,8 +51,8 @@ qboolean Set_Client( gentity_t *ent ) {
 
 	cl = ent->client;
 	if ( cl->ps.pm_type != PM_SPECTATOR ) return qfalse;
-	if ( !ent->freezeState ) return qfalse;
-	if ( cl->sess.sessionTeam == TEAM_SPECTATOR ) return qfalse;
+	//if ( !ent->freezeState ) return qfalse;
+	//if ( cl->sess.sessionTeam == TEAM_SPECTATOR ) return qfalse;
 
 	cl->sess.spectatorState = SPECTATOR_NOT;
 	cl->sess.spectatorClient = 0;
@@ -99,7 +99,7 @@ void Persistant_spectator( gentity_t *ent, gclient_t *cl ) {
 		ent->client->ps.persistant[ i ] = persistant[ i ];
 	}
 }
-
+/* We don't use this anymore.
 static void FollowClient( gentity_t *ent, gentity_t *other ) {
 	if ( ent->target_ent == other ) return;
 	if ( ent->target_ent->client->sess.sessionTeam == TEAM_SPECTATOR || ent->target_ent->freezeState ) { //is_spectator( ent->target_ent->client ) ) {
@@ -107,7 +107,7 @@ static void FollowClient( gentity_t *ent, gentity_t *other ) {
 		ent->target_ent->client->sess.spectatorClient = other->s.number;
 	}
 }
-
+*/
 static void player_free( gentity_t *ent ) {
 	if ( !ent || !ent->inuse || !ent->freezeState) {
 		return;
@@ -116,17 +116,20 @@ static void player_free( gentity_t *ent ) {
 	//Not frozen anymore, setup for respawn
 	ent->freezeState = qfalse;
 	(g_fastRespawn.integer && !ent->client->pers.fastRespawn)?(ent->client->respawnTime = level.time + 500):(ent->client->respawnTime = level.time + 1700);
-
 	if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
 		//Stop following whomever and knock'em back a ways
 		StopFollowing( ent );
+		Set_Client( ent );
+		//
 		/*ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
 		ent->client->ps.pm_time = 100;*/
 		//Reset view angles?
+		/* 5.23.2013
 		VectorCopy( ent->r.mins, ent->target_ent->r.mins );
 		VectorCopy( ent->r.maxs, ent->target_ent->r.maxs );
 		VectorCopy( ent->r.absmin, ent->target_ent->r.absmin );
 		VectorCopy( ent->r.absmax, ent->target_ent->r.absmax );
+		*/
 	}
 	//Set the inactivity/forceRespawn timer
 	ent->client->inactivityTime = level.time + g_inactivity.integer * 1000;
@@ -153,63 +156,80 @@ void Body_free( gentity_t *self ) {
 	G_FreeEntity( self );
 }
 
+static void Gib_Body( gentity_t *self, gentity_t *e ) {
+	gentity_t	*tent;
+
+	//Destroy the body..
+	tent = G_TempEntity( self->target_ent->r.currentOrigin, EV_OBITUARY );
+	tent->s.eventParm = MOD_UNKNOWN;
+	tent->s.otherEntityNum = self->target_ent->s.number;
+	tent->s.otherEntityNum2 = e->s.number;
+	tent->r.svFlags = SVF_BROADCAST;
+
+	G_LogPrintf( "Kill: %i %i %i: %s killed %s by %s\n", e->s.number, self->target_ent->s.number, MOD_UNKNOWN, e->client->pers.netname, self->target_ent->client->pers.netname, "MOD_UNKNOWN" );
+	AddScore( e, self->s.pos.trBase, 1 );
+			
+	e->client->sess.wins++;
+	G_Damage( self, NULL, NULL, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
+}
+
 static void Body_Explode( gentity_t *self ) {
 	int	i;
 	gentity_t	*e, *tent;
 	vec3_t	point;
+	qboolean toReturn = qfalse;
 
 	for ( i = 0; i < g_maxclients.integer; i++ ) {
 		e = g_entities + i;
 		if ( !e->inuse ) continue;
 		if ( e->health < 1 ) continue;
-		if ( e->client->sess.sessionTeam != self->spawnflags ) continue;
 		if ( e->client->sess.sessionTeam != self->target_ent->client->sess.sessionTeam || e->client->sess.sessionTeam == TEAM_SPECTATOR) continue;
 		VectorSubtract( self->s.pos.trBase, e->s.pos.trBase, point );
 		if ( VectorLength( point ) > 100 ) continue;
-		//if ( is_spectator( e->client ) ) continue;
-		if ( !self->count ) {
-			/*if ( g_dmflags.integer & 1024 ) {
-				self->count = level.time + 2000;
-			} else {
-				self->count = level.time + 3000;
-			}
-			G_Sound( self, CHAN_AUTO, self->noise_index );*/
-			self->count = self->target_ent->freezeThawTime;
-			G_AddEvent(self->target_ent, EV_WATER_CLEAR, 0);
 
+		if ( !self->count ) {
+			self->count = self->target_ent->freezeThawTime;
+			G_AddEvent(self->target_ent, EV_WATER_CLEAR, self->target_ent->client->ps.clientNum);//Wrong
+			toReturn = qtrue;
 			self->activator = e;
 		} else if ( self->count < level.time ) {
+			//We should thaw the player to respawn..
 			if ( self->activator == e ) {
 			} else if ( !self->activator->inuse ) {
 			} else if ( self->activator->health < 1 ) {
 			} else {
-				VectorSubtract( self->s.pos.trBase, self->activator->s.pos.trBase, point );
-				if ( VectorLength( point ) <= 100 && self->activator->client->sess.sessionTeam != TEAM_SPECTATOR) {
-				//} else if ( is_spectator( self->activator->client ) ) {
-				//} else {
-					e = self->activator;
-				}
+				e = self->activator;
 			}
 
-			tent = G_TempEntity( self->target_ent->r.currentOrigin, EV_OBITUARY );
-			tent->s.eventParm = MOD_UNKNOWN;
-			tent->s.otherEntityNum = self->target_ent->s.number;
-			tent->s.otherEntityNum2 = e->s.number;
-			tent->r.svFlags = SVF_BROADCAST;
-
-			G_LogPrintf( "Kill: %i %i %i: %s killed %s by %s\n", e->s.number, self->target_ent->s.number, MOD_UNKNOWN, e->client->pers.netname, self->target_ent->client->pers.netname, "MOD_UNKNOWN" );
-			AddScore( e, self->s.pos.trBase, 1 );
-			
-			e->client->sess.wins++;
-			G_Damage( self, NULL, NULL, NULL, NULL, 100000, DAMAGE_NO_PROTECTION, MOD_TELEFRAG );
+			//Destroy the body..
+			Gib_Body(self, e);
+			player_free(self->target_ent);
 		} else if ( self->count ) {
 			//Every frame knock a second, per teammate, off the time required to thaw.
 			self->count -= 1000;
-			self->freezeThawTime -= 1000;
+			self->target_ent->freezeThawTime -= 1000;
+			self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
+
+			//FIXME: For some reason we hit autothaw instead of getting to the above if - so we duplicate the check instead of forcing a wait until next frame
+			if ( self->count < level.time ) {
+				//We should thaw the player to respawn..
+				if ( self->activator == e ) {
+				} else if ( !self->activator->inuse ) {
+				} else if ( self->activator->health < 1 ) {
+				} else {
+					e = self->activator;
+				}
+
+				//Destroy the body..
+				Gib_Body(self, e);
+				player_free(self->target_ent);
+			}
+			toReturn = qtrue;
 			continue;
 		}
-		return;
 	}
+	if ( toReturn )	
+		return;
 	self->count = 0;
 }
 
@@ -300,6 +320,7 @@ static void TossBody( gentity_t *self ) {
 	self->r.maxs[ 2 ] = -8;
 	self->r.contents = CONTENTS_CORPSE;
 	self->freezeState = qfalse;
+	self->target_ent->freezeState = qfalse;
 	self->s.weapon = WP_NONE;
 
 	switch ( n ) {
@@ -328,46 +349,49 @@ static void TossBody( gentity_t *self ) {
 static void Body_think( gentity_t *self ) {
 	self->nextthink = level.time + FRAMETIME;
 
-	//G_Printf("DBG:Freeze: nextthink set\n");
 	if ( !self->target_ent || !self->target_ent->client || !self->target_ent->inuse ) {
+		self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
 		Body_free( self );
-		//G_Printf("DBG:Freeze: return 1\n");
 		return;
 	}
 	if ( self->s.otherEntityNum != self->target_ent->s.number ) {
+		self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
 		Body_free( self );
-		//G_Printf("DBG:Freeze: return 2\n");
 		return;
 	}
 	if ( level.intermissiontime || level.intermissionQueued ) {
-		//G_Printf("DBG:Freeze: return 3 - intermission\n");
-		return;
-	}
-	if ( level.time >= self->target_ent->freezeThawTime || level.time - self->timestamp > 150000 || ( ( g_dmflags.integer & 1024 || g_gametype.integer == GT_CTF ) && level.time - self->timestamp > 60000 ) ) {
-		/*player_free( self->target_ent );
-		TossBody( self );*/
-		Body_free(self);//4/19/2013
-		//G_Printf("DBG:Freeze: return 4 - time checks\n");
 		return;
 	}
 
-	if ( self->freezeState ) {
-		if ( !self->target_ent->freezeState ) {
+	if ( level.time >= self->target_ent->freezeThawTime || level.time - self->timestamp > 150000 || ( g_dmflags.integer & 1024 && level.time - self->timestamp > 60000 ) ) {
+		/*player_free( self->target_ent );
+		TossBody( self );*/
+		self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
+		Body_free(self);//4/19/2013
+		return;
+	}
+
+	//Force thaw of spectators
+	if ( self->freezeState || (self->target_ent->client->sess.sessionTeam == TEAM_SPECTATOR && self->freezeState) ) {
+		if ( !self->target_ent->freezeState || (self->target_ent->client->sess.sessionTeam == TEAM_SPECTATOR && self->target_ent->freezeState) ) {
+			self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
 			TossBody( self );
-			//G_Printf("DBG:Freeze: return 5\n");
+
 			return;
 		}
+		//This is proximity think && body_explode
 		Body_Explode( self );
+		self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
 		if ( self->last_move_time < level.time - 1000 ) {
 			Body_WorldEffects( self );
 			self->last_move_time = level.time;
 		}
-		//G_Printf("DBG:Freeze: return 6\n");
 		return;
 	}
 
 	//Test - auto-thaw fix? <- !!
 	if ( level.time >= self->target_ent->freezeThawTime ) {
+		self->target_ent->client->ps.stats[STAT_ARMOR] = (self->target_ent->freezeThawTime - level.time) / 1000;
 		//Release the player.
 		Body_free( self );
 	} else {
@@ -378,9 +402,9 @@ static void Body_think( gentity_t *self ) {
 static void Body_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int damage, int mod ) {
 	gentity_t	*tent;
 
-	if ( self->health > GIB_HEALTH ) {
+	/*if ( self->health > GIB_HEALTH ) {
 		return;
-	}
+	}*/
 
 	if ( self->freezeState && !g_blood.integer ) {
 		player_free( self->target_ent );
@@ -542,6 +566,7 @@ static void CopyToBody( gentity_t *ent ) {
 	}
 
 	body->r.svFlags = ent->r.svFlags;
+	body->r.svFlags |= SVF_BROADCAST; //FIXME: Possibly. - We might be able to do this by giving the player health and doing if ( !ent->freezeState ) everywhere stats[STAT_HEALTH] <= 0
 	VectorCopy( ent->r.mins, body->r.mins );
 	VectorCopy( ent->r.maxs, body->r.maxs );
 	VectorCopy( ent->r.absmin, body->r.absmin );
@@ -643,7 +668,7 @@ void player_freeze( gentity_t *self, gentity_t *attacker, int mod ) {
 	CopyToBody( self );
 	self->r.maxs[ 2 ] = -8;
 	self->freezeState = qtrue;
-	self->freezeThawTime =  level.time + (g_freezeAutothawTime.integer * 1000);
+	self->client->ps.ammo[WP_GAUNTLET] = self->freezeThawTime =  level.time + (g_freezeAutothawTime.integer * 1000);
 	check_time = ( level.time - 3000 ) + 200;
 
 	self->takedamage = qfalse;
@@ -678,7 +703,8 @@ void team_wins( int team ) {
 		if ( !e->inuse ) continue;
 		if ( e->freezeState ) {
 			if ( cl->sess.sessionTeam == team || g_freezeRoundRespawn.integer ) {
-				player_free( e );
+				//player_free( e );
+				Body_free(e->target_ent);
 			}
 			continue;
 		}
@@ -686,7 +712,7 @@ void team_wins( int team ) {
 		if ( e->health < 1 ) continue;
 		if ( is_spectator( cl ) ) continue;
 
-		if ( cl->ps.powerups[ PW_REDFLAG ] ) {
+		/*if ( cl->ps.powerups[ PW_REDFLAG ] ) {
 			memset( cl->ps.powerups, 0, sizeof ( cl->ps.powerups ) );
 			cl->ps.powerups[ PW_REDFLAG ] = INT_MAX;
 		} else if ( cl->ps.powerups[ PW_BLUEFLAG ] ) {
@@ -695,9 +721,9 @@ void team_wins( int team ) {
 		} else if ( cl->ps.powerups[ PW_NEUTRALFLAG ] ) {
 			memset( cl->ps.powerups, 0, sizeof ( cl->ps.powerups ) );
 			cl->ps.powerups[ PW_NEUTRALFLAG ] = INT_MAX;
-		} else {
-			memset( cl->ps.powerups, 0, sizeof ( cl->ps.powerups ) );
-		}
+		} else {*/
+		memset( cl->ps.powerups, 0, sizeof ( cl->ps.powerups ) );
+		//}
 	}
 
 	if ( level.numPlayingClients < 2 || g_gametype.integer != GT_FREEZE ) {

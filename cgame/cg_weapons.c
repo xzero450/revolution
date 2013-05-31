@@ -1824,6 +1824,7 @@ void CG_AddViewWeapon( playerState_t *ps ) {
 
 	if ( cg_drawGun.integer >= 50 && cg_drawGun.integer <= 160 ) {
 		lengthscale = 1.0f * tan( DEG2RAD(cg_drawGun.integer/2) );
+		VectorScale(hand.axis[2], lengthscale, hand.axis[2]);
 	} else if ( cg_drawGun.integer == -1 ) {
 		lengthscale = 1.0f / tan( DEG2RAD(cg_fov.integer/2) );
 	} else {

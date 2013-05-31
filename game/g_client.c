@@ -334,6 +334,10 @@ void BodySink( gentity_t *ent ) {
 		//ent->relink = 0;
 		trap_UnlinkEntity( ent );
 		ent->physicsObject = qfalse;
+		if ( g_gametype.integer == GT_FREEZE ) {
+			//FIXME: We should remove the entity from g_entities really.
+			ent->s.eFlags |= EF_NODRAW;
+		}
 		return;	
 	}
 	ent->nextthink = level.time + 100;
@@ -1462,7 +1466,7 @@ void ClientSpawn(gentity_t *ent) {
 	// find a spawn point
 	// do it before setting health back up, so farthest
 	// ranging doesn't count this client
-	if ( client->sess.sessionTeam == TEAM_SPECTATOR  ) {
+	if ( client->sess.sessionTeam == TEAM_SPECTATOR /*|| (ent->freezeState && g_gametype.integer == GT_FREEZE)*/  ) {
 		spawnPoint = SelectSpectatorSpawnPoint ( 
 						spawn_origin, spawn_angles);
 	} else if (g_gametype.integer >= GT_CTF && g_gametype.integer != GT_FREEZE ) {
@@ -1579,46 +1583,45 @@ void ClientSpawn(gentity_t *ent) {
 	VectorCopy (playerMaxs, ent->r.maxs);
 
 	client->ps.clientNum = index;
+		//Instagib or InstaFreeze or Railz or Rockets'n'Rails
+		if ( g_gamemode.integer != 0 && g_gamemode.integer != 4 ) {
+			//If it's an allowed weapon and it's after any possible change, they can have it.
+			int i = 0;
+			for ( i = WP_GAUNTLET; i < WP_BFG + 1; i++ ) {
+				if ( weap_allowed.integer & (1 << (i - 1)) ) {
+					client->ps.stats[STAT_WEAPONS] |= ( 1 << i );
+					level.stats_picked |= 1 << (i - 1);
+					if ( g_gamemode.integer == 2 ) {
+						client->ps.ammo[i] = 25;
+					} else {
+						client->ps.ammo[i] = INFINITE;
+					}
+				}
+			}
+		} else {
+			//Normal baseq3 or freeze
+			if ( weap_allowed.integer & 1 ) {
+				client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
+				client->ps.ammo[WP_GAUNTLET] = -1;
+				level.stats_picked |= (1 << (WP_GAUNTLET - 1));
+			}
 
-	//Instagib or InstaFreeze or Railz or Rockets'n'Rails
-	if ( g_gamemode.integer != 0 && g_gamemode.integer != 4 ) {
-		//If it's an allowed weapon and it's after any possible change, they can have it.
-		int i = 0;
-		for ( i = WP_GAUNTLET; i < WP_BFG + 1; i++ ) {
-			if ( weap_allowed.integer & (1 << (i - 1)) ) {
-				client->ps.stats[STAT_WEAPONS] |= ( 1 << i );
-				level.stats_picked |= 1 << (i - 1);
-				if ( g_gamemode.integer == 2 ) {
-					client->ps.ammo[i] = 25;
+			if ( weap_allowed.integer & 2 ) {
+				client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_MACHINEGUN );
+				level.stats_picked |= (1 << (WP_MACHINEGUN - 1));
+
+				if ( g_gamemode.integer == 1 ) {
+					client->ps.ammo[WP_MACHINEGUN] = INFINITE;
+				} else if ( g_gametype.integer == GT_TEAM ) {
+					client->ps.ammo[WP_MACHINEGUN] = 50;
 				} else {
-					client->ps.ammo[i] = INFINITE;
+					client->ps.ammo[WP_MACHINEGUN] = cpm_MGweapon; // CPM
 				}
 			}
 		}
-	} else {
-		//Normal baseq3 or freeze
-		if ( weap_allowed.integer & 1 ) {
-			client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GAUNTLET );
-			client->ps.ammo[WP_GAUNTLET] = -1;
-			level.stats_picked |= (1 << (WP_GAUNTLET - 1));
-		}
-
-		if ( weap_allowed.integer & 2 ) {
-			client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_MACHINEGUN );
-			level.stats_picked |= (1 << (WP_MACHINEGUN - 1));
-
-			if ( g_gamemode.integer == 1 ) {
-				client->ps.ammo[WP_MACHINEGUN] = INFINITE;
-			} else if ( g_gametype.integer == GT_TEAM ) {
-				client->ps.ammo[WP_MACHINEGUN] = 50;
-			} else {
-				client->ps.ammo[WP_MACHINEGUN] = cpm_MGweapon; // CPM
-			}
-		}
-	}
 
 	if( weap_enableHook.integer != 0 ) {
-		client->ps.ammo[WP_GRAPPLING_HOOK] = -1;
+		//client->ps.ammo[WP_GRAPPLING_HOOK] = (g_gametype.integer == GT_FREEZE && ent->freezeState && ent->freezeThawTime>level.time)?(ent->freezeThawTime):(-1);
 		if( weap_enableHook.integer == 2 ) {//only give the hook weapon when hook mode is 2
 			client->ps.stats[STAT_WEAPONS] |= ( 1 << WP_GRAPPLING_HOOK );
 		}
@@ -1647,7 +1650,7 @@ void ClientSpawn(gentity_t *ent) {
 /*freeze
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( ( g_gametype.integer == GT_FREEZE && is_spectator( client ) ) || 
+	if ( ( g_gametype.integer == GT_FREEZE && (is_spectator( client ) /*|| ent->freezeState*/) ) || 
 		( g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR ) ) {
 //freeze
 
@@ -1712,7 +1715,7 @@ freeze*/
 /*freeze
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gametype.integer == GT_FREEZE && !is_spectator( client )) || 
+	if ( (g_gametype.integer == GT_FREEZE && !is_spectator( client ) /*&& !ent->freezeState*/) || 
 		(g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 		BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
@@ -1774,7 +1777,7 @@ void ClientDisconnect( int clientNum ) {
 /*freeze
 		if ( level.clients[i].sess.sessionTeam == TEAM_SPECTATOR
 freeze*/
-		if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ i ]) || 
+		if ( (g_gametype.integer == GT_FREEZE && (is_spectator( &level.clients[ i ]) /*|| g_entities[i].freezeState*/) || 
 			(g_gametype.integer != GT_FREEZE && level.clients[i].sess.sessionTeam == TEAM_SPECTATOR) )
 //freeze
 			&& level.clients[i].sess.spectatorState == SPECTATOR_FOLLOW
@@ -1788,7 +1791,7 @@ freeze*/
 /*freeze
 		&& ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-		&& ((g_gamemode.integer > 3 && !is_spectator( ent->client )) || (g_gamemode.integer < 4 && ent->client->sess.sessionTeam != TEAM_SPECTATOR)) ) {
+		&& ((g_gametype.integer == GT_FREEZE && (!is_spectator( ent->client )) /*|| ent->freezeState*/) || (g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam != TEAM_SPECTATOR)) ) {
 //freeze
 		tent = G_TempEntity( ent->client->ps.origin, EV_PLAYER_TELEPORT_OUT );
 		tent->s.clientNum = ent->s.clientNum;

@@ -801,6 +801,12 @@ static void CG_DrawStatusBar() {
 		{ 0.5f, 0.5f, 0.5f, 1.0f },     // weapon firing
 		{ 1.0f, 1.0f, 1.0f, 1.0f } };   // health > 100
 
+	if ( cgs.gametype == GT_FREEZE && Q_Isfreeze(cg.clientNum) ) {
+		float ww = cgs.clientinfo[cg.clientNum].armor * 2;
+		CG_FillRect(40, 432,  ww > 240 ? (240) : (ww), 12, colorCyan);
+		return;
+	}
+
 	if ( cg_drawStatus.integer == 0 ) {
 		return;
 	}
@@ -2595,11 +2601,8 @@ static void CG_DrawSpectator() {
 
 	CG_DrawStringExt(320 - 9 * 8, 440, "SPECTATOR", colorWhite, qfalse, qfalse,
 								BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, 0, 0 );
-/*freeze
+
 	if ( cgs.gametype == GT_TOURNAMENT ) {
-freeze*/
-	if ( cgs.gametype == GT_TOURNAMENT || Q_Isfreeze( cg.snap->ps.clientNum ) ) {
-//freeze
 		CG_DrawStringExt(320 - 15 * 8, 460, "waiting to play", colorWhite, qfalse, qfalse,
 									BIGCHAR_WIDTH, BIGCHAR_HEIGHT, 0, 0, 0 );
 
@@ -4847,17 +4850,7 @@ static void CG_Draw2D( void ) {
 			if ( !cg.showScores && cg.snap->ps.stats[STAT_HEALTH] > 0 ) {
 				//Don't draw if the scoreboard is showing, we want to see if when we're dead.
 				//if ( !cg.showScores ) {
-
-/*
-#ifdef MISSIONPACK
-				if ( cg_drawStatus.integer ) {
-					Menu_PaintAll();
-					CG_DrawTimedMenus();
-				}
-#else
-				CG_DrawStatusBar();
-#endif
-*/      
+    
 				CG_DrawAmmoWarning();
 
 #ifdef MISSIONPACK

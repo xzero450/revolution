@@ -372,7 +372,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 	//Evo's fade hack hacked even further by spike
 	while(*s && (cnt < maxChars))
 	{
-		if ( Q_IsColorString( s )|| (*s == '^' && *s+1 != '^') )
+		if ( Q_IsColorString( s )|| (*(s) == '^' && *(s + 1) != '^') )
 		{
 			//change color
 			cnt_colors = 0;
@@ -384,11 +384,12 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 			{
 				//this means fade to the next color specified (if specified)
 				memcpy(fadeColors[cnt_colors], g_color_table[ColorIndex(*(s + 2))], sizeof(vec4_t));
-				cnt_colors++;
+				if ( cnt_colors < 2 )
+					cnt_colors++;
 				s += 3;
 				continue;
 			}
-			else if ( ( Q_IsColorString(s) || (*(s) == '^' && *(s + 1) != '^') ) && cnt_colors < 3 )
+			else if ( ( Q_IsColorString(s) || (*(s) == '^' && *(s + 1) != '^') ) )
 			{
 				//This means we'll be fading across the name.
 				if (nameLength[0] > 2) {
@@ -399,9 +400,10 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 					fadeColors[3][1] = (fadeColors[0][1] - fadeColors[1][1]) / nameLength[0];
 					fadeColors[3][2] = (fadeColors[0][2] - fadeColors[1][2]) / nameLength[0];
 					//
-					cnt_colors++;
+					if ( cnt_colors < 2 )
+						cnt_colors++;
 					s += 2;
-					if ( ( Q_IsColorString(s) || (*(s) == '^' && *(s + 1) != '^') ) && cnt_colors < 3 )
+					if ( ( Q_IsColorString(s) || (*(s) == '^' && *(s + 1) != '^') ) )
 					{
 						//This means we'll be fading across the name.
 						if (cnt_colors == 2) {
@@ -419,17 +421,18 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 							fadeColors[4][1] = (fadeColors[1][1] - fadeColors[2][1]) / nameLength[0];
 							fadeColors[4][2] = (fadeColors[1][2] - fadeColors[2][2]) / nameLength[0];
 							//
-							cnt_colors++;
+							if ( cnt_colors < 2 )
+								cnt_colors++;
 							s += 2;
 						}
 					}
 					continue;
 				}
 			}
-			//else if(*s == '\0')
-				//break;
-			else
-				continue;
+			else if(*s == '\0')
+				break;
+			//else
+				//continue;
 		}
 
 		if(!forceColor)
@@ -520,7 +523,7 @@ void CG_DrawStringExt( int x, int y, const char *string, const float *setColor,
 		}
 
 		if ( (*s) ) { //FIXME: Hack
-			CG_DrawChar(xx, y, charWidth, charHeight, *s, altFont, superhud);
+			CG_DrawChar(xx, y, charWidth, charHeight, *(s), altFont, superhud);
 			xx += charWidth;
 		}
 		else

@@ -496,7 +496,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 	es = &cent->currentState;
 	event = es->event & ~EV_EVENT_BITS;
 
-	if ( cg_debugEvents.integer ) {
+	if ( cg_debugEvents.integer /*|| (cgs.gametype == GT_FREEZE && event == EV_WATER_CLEAR)*/ ) {
 		CG_Printf( "ent:%3i  event:%3i ", es->number, event );
 	}
 
@@ -517,7 +517,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 
 	//if (!AllowEntityInteraction(cent))
 	//	return;
-	if ( cg.eventAdjustment&& event > 1 ) {
+	if ( cg.eventAdjustment && event > 1 ) {
 		event--;
 	}
 	switch ( event ) {
@@ -716,7 +716,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		break;
 	case EV_WATER_CLEAR:
 		DEBUGNAME("EV_WATER_CLEAR");
-		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*gasp.wav" ) );
+		trap_S_StartSound (NULL, es->number, CHAN_AUTO, CG_CustomSound( es->number, "*gasp.wav" ) );//es->eventParm
 		break;
 
 	case EV_ITEM_PICKUP:
@@ -1223,11 +1223,10 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		//----
 		if(clientNum == cg.predictedPlayerState.clientNum)
 			cg.clearspeeds = qtrue;
-		if ( !g_gamemode.integer ) {
-			trap_S_StartSound (NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, "*falling1.wav" ) );
+		if ( cgs.gametype == GT_FREEZE ) {
+			trap_S_StartSound (NULL, es->number, CHAN_BODY, CG_CustomSound( es->number, "*falling1.wav" ) );
 		} else {
-		trap_S_StartSound( NULL, es->number, CHAN_VOICE, 
-				CG_CustomSound( es->number, va("*death%i.wav", event - EV_DEATH1 + 1) ) );
+			trap_S_StartSound( NULL, es->number, CHAN_VOICE, CG_CustomSound( es->number, va("*death%i.wav", event - EV_DEATH1 + 1) ) );
 		}
 		break;
 

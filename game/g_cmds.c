@@ -1185,10 +1185,11 @@ If the client being followed leaves the game, or you just want to drop
 to free floating spectator mode
 =================
 */
-void StopFollowing( gentity_t *ent ) {
-	ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;	
-	/*freeze*/if ( g_gametype.integer != GT_FREEZE ) {
-	ent->client->sess.sessionTeam = TEAM_SPECTATOR;	
+void StopFollowing( gentity_t *ent ) {	
+/*freeze*/
+	if ( g_gametype.integer != GT_FREEZE ) {
+		ent->client->ps.persistant[ PERS_TEAM ] = TEAM_SPECTATOR;//5.26.2013 - was before this if causing a freezetag bug. Check for bugs.
+		ent->client->sess.sessionTeam = TEAM_SPECTATOR;	
 	}
 /*freeze*/
 	SetClientViewAngle( ent, ent->client->ps.viewangles );
@@ -1196,10 +1197,10 @@ void StopFollowing( gentity_t *ent ) {
 	memset( ent->client->ps.powerups, 0, sizeof ( ent->client->ps.powerups ) );
 //freeze
 	if ( g_gametype.integer == GT_FREEZE ) {
-	ent->client->sess.spectatorState = SPECTATOR_FREE;
-	ent->client->ps.pm_flags &= ~PMF_FOLLOW;
-	ent->r.svFlags &= ~SVF_BOT;
-	ent->client->ps.clientNum = ent - g_entities;
+		ent->client->sess.spectatorState = SPECTATOR_FREE;
+		ent->client->ps.pm_flags &= ~PMF_FOLLOW;
+		ent->r.svFlags &= ~SVF_BOT;
+		ent->client->ps.clientNum = ent - g_entities;
 	}
 }
 
@@ -1340,8 +1341,8 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 	int		original;
 
 //freeze
-	if ( g_gametype.integer == GT_FREEZE ) {
-		if ( ent->freezeState) return;
+	if ( g_gametype.integer == GT_FREEZE && (ent->client->sess.sessionTeam != TEAM_SPECTATOR && !ent->freezeState)) {
+		//if ( ent->freezeState) return;
 		if ( Set_Client( ent ) ) return;
 	}
 //freeze
@@ -1351,7 +1352,7 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 		ent->client->sess.losses++;
 	}
 	// first set them to spectator
-	if ( ent->client->sess.spectatorState == SPECTATOR_NOT ) {
+	if ( ent->client->sess.spectatorState == SPECTATOR_NOT && g_gametype.integer != GT_FREEZE && !ent->freezeState ) {
 		SetTeam( ent, "spectator", qfalse );
 	}
 
@@ -1389,7 +1390,7 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 			}
 		} else {
 			if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR && level.clients[ clientnum ].sess.sessionTeam != ent->client->sess.sessionTeam ) continue;
-			}
+		}
 	/*		if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ clientnum ] )) || 
 				(g_gametype.integer != GT_FREEZE && level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR) ) {
 	freeze*/
