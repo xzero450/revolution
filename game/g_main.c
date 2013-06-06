@@ -1481,6 +1481,24 @@ void ExitLevel (void) {
 		return;	
 	}
 
+	if ( g_gametype.integer == GT_FREEZE ) {
+		gentity_t	*ent;
+		//Stop following if not a spectator
+		for ( i = 0; i < g_maxclients.integer; i++ ) {
+			ent = g_entities + i;
+
+			if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
+				ent->client->sess.spectatorState = SPECTATOR_NOT;
+				ent->client->sess.spectatorClient = 0;
+				ent->client->ps.pm_flags &= ~PMF_FOLLOW;
+				//ent->r.svFlags &= ~SVF_BOT;
+				ent->client->ps.clientNum = ent - g_entities;
+			}
+			ent->freezeState = qfalse;
+			ent->freezeThawTime = 0;
+		//Unfreeze everyone.
+	}
+
 
 	trap_SendConsoleCommand( EXEC_APPEND, "vstr nextmap\n" );
 	level.changemap = NULL;

@@ -1566,7 +1566,7 @@ void CheckTeamStatus(void) {
 				continue;
 			}
 
-			if ( (ent->inuse || (ent->freezeState && g_gametype.integer == GT_FREEZE) && (ent->client->sess.sessionTeam == TEAM_RED ||	ent->client->sess.sessionTeam == TEAM_BLUE)) {
+			if ( (ent->inuse || (ent->freezeState && g_gametype.integer == GT_FREEZE)) && (ent->client->sess.sessionTeam == TEAM_RED ||	ent->client->sess.sessionTeam == TEAM_BLUE)) {
 				TeamplayInfoMessage( ent );
 			}
 		}
