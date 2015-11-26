@@ -17,7 +17,7 @@
 
 //Moved this here so it can be accessed in game and cgame with a single define.
 #define	GAMEVERSION	"Revolution"
-#define BUILDINFO "2.00[Delta6] - Build Date: June 6, 2013"
+#define BUILDINFO "2.00[Epsilon] - Build Date: October 17, 2015"
 
 #define MAX_TEAMNAME 32
 

@@ -471,12 +471,7 @@ void CG_CheckLocalSounds( playerState_t *ps, playerState_t *ops ) {
 	}
 
 	// fraglimit warnings
-/*freeze
 	if ( cgs.fraglimit > 0 && cgs.gametype < GT_CTF) {
-freeze*/
-	if ( (cgs.gametype == GT_FREEZE && cgs.fraglimit > 0 && cgs.gametype < GT_TEAM) || 
-		 (cgs.gametype != GT_FREEZE && cgs.gametype < GT_CTF) ) {
-//freeze
 		highScore = cgs.scores1;
 		if ( !( cg.fraglimitWarnings & 4 ) && highScore == (cgs.fraglimit - 1) ) {
 			cg.fraglimitWarnings |= 1 | 2 | 4;

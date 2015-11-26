@@ -609,19 +609,6 @@ void player_die( gentity_t *self, gentity_t *inflictor, gentity_t *attacker, int
 			Team_ReturnFlag( TEAM_BLUE );
 			self->client->ps.powerups[PW_BLUEFLAG] = 0;
 		}
-/*	} else {
-		gitem_t		*item;
-		//Toss the flag
-		//FIXME:forceTossflagOnTeamSwitch We shouldn't need this.
-		if ( self->client->ps.powerups[PW_REDFLAG] ) {
-			item = BG_FindItemForPowerup( PW_REDFLAG );
-			ent->client->ps.powerups[PW_REDFLAG] = 0;
-		} else if ( self->client->ps.powerups[PW_BLUEFLAG] ) {
-			item = BG_FindItemForPowerup( PW_BLUEFLAG );
-			ent->client->ps.powerups[PW_BLUEFLAG] = 0;
-		}
-
-		Drop_Item( ent, item, 0, qtrue );*/
 	}
 
 	if( g_flagSacrifice.integer == 0 ) {
@@ -710,7 +697,7 @@ freeze*/
 	memset( self->client->ps.powerups, 0, sizeof(self->client->ps.powerups) );
 
 //freeze
-	if ( g_gametype.integer >= GT_FREEZE ) {
+	if ( g_gametype.integer == GT_FREEZE ) {
 		player_freeze( self, attacker, meansOfDeath );
 		if ( self->freezeState ) {
 			G_AddEvent( self, EV_DEATH1 + ( rand() % 3 ), killer );
@@ -1133,9 +1120,9 @@ void G_Damage( gentity_t *targ, gentity_t *inflictor, gentity_t *attacker,
 		}
 //freeze
 		if ( g_gametype.integer == GT_FREEZE ) {
-			if ( !client ) {
-			//	if ( targ != attacker && level.time - client->respawnTime < 1000 ) return;
-			//} else {
+			if ( client ) {
+				if ( targ != attacker && level.time - client->respawnTime < 1000 ) return;
+			} else {
 				if ( DamageBody( targ, attacker, dir, mod, knockback ) ) return;
 			}
 		}

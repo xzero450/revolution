@@ -241,6 +241,7 @@ typedef struct {
 	int			aimNudge;
 	//qboolean	nonbot;
 	//qboolean	seenWelcomeMessage;
+	qboolean	newScores;
 	
 	int			ServertimeNudge;
 

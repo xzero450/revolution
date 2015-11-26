@@ -233,20 +233,10 @@ void CG_DrawInformation( void ) {
 		s = "Tournament";
 		break;
 	case GT_TEAM:
-		//if ( g_gamemode.integer < 4 ) {
-			s = "Team Deathmatch";
-		//} else {
-		//	s = "Freeze Tag";
-		//}
-//freeze
+		s = "Team Deathmatch";
 		break;
 	case GT_CTF:
-		//if ( g_gamemode.integer < 4 ) {
 			s = "Capture The Flag";
-		//} else {
-		//	s = "Freeze Tag CTF";
-		//}
-//freeze
 		break;
 #ifdef MISSIONPACK
 	case GT_1FCTF:
@@ -260,8 +250,8 @@ void CG_DrawInformation( void ) {
 		break;
 #endif
 	case GT_FREEZE:
-		s = "Freeze Tag";
-		break;
+			s = "Freeze Tag";
+			break;
 	default:
 		s = "Unknown Gametype";
 		break;
@@ -283,8 +273,6 @@ void CG_DrawInformation( void ) {
 
 
 	if (cgs.gametype < GT_CTF ) {
-	//if ( (g_gamemode.integer > 3 && cgs.gametype < GT_TEAM) || (g_gamemode.integer < 4 && cgs.gametype < GT_CTF) ) {
-//freeze
 		value = atoi( Info_ValueForKey( info, "fraglimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "fraglimit %i", value ),
@@ -295,8 +283,6 @@ void CG_DrawInformation( void ) {
 
 
 	if (cgs.gametype >= GT_CTF) {
-//	if ( (g_gamemode.integer > 3 && cgs.gametype >= GT_TEAM) || (g_gamemode.integer < 4 && cgs.gametype >= GT_CTF) ) {
-//freeze
 		value = atoi( Info_ValueForKey( info, "capturelimit" ) );
 		if ( value ) {
 			UI_DrawProportionalString( 320, y, va( "capturelimit %i", value ),

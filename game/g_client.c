@@ -1247,7 +1247,8 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	client->pers.connected = CON_CONNECTING;
 
 	// read or initialize the session data
-	if ( isBot || firstTime || (level.newSession && !( (g_gametype.integer == GT_CTF || g_gametype.integer == GT_TEAM) && (level.gt == GT_CTF || level.gt == GT_TEAM) ) )) {
+	//Evo: Why was this changed? - Removed isBot 11/06/2015
+	if ( /*isBot ||*/ firstTime || (level.newSession && !( (g_gametype.integer == GT_CTF || g_gametype.integer == GT_TEAM) && (level.gt == GT_CTF || level.gt == GT_TEAM) ) )) {
 		G_InitSessionData( client, userinfo );
 	} //else {
 		//client->sess.losses = 0;
@@ -1260,9 +1261,9 @@ char *ClientConnect( int clientNum, qboolean firstTime, qboolean isBot ) {
 	G_ReadSessionData( client );
 //freeze
 	if ( g_gametype.integer == GT_FREEZE ) {
-		/*if ( g_gametype.integer != GT_TOURNAMENT ) {
+		//if ( g_gametype.integer != GT_TOURNAMENT ) {
 			client->sess.wins = 0;
-		}*/
+		//}
 		ent->freezeState = qfalse;
 		ent->readyBegin = qfalse;
 	}
@@ -1584,7 +1585,7 @@ void ClientSpawn(gentity_t *ent) {
 
 	client->ps.clientNum = index;
 		//Instagib or InstaFreeze or Railz or Rockets'n'Rails
-		if ( g_gamemode.integer != 0 && g_gamemode.integer != 4 ) {
+		if ( g_gamemode.integer != 0 /*&& g_gamemode.integer != 4*/ ) {
 			//If it's an allowed weapon and it's after any possible change, they can have it.
 			int i = 0;
 			for ( i = WP_GAUNTLET; i < WP_BFG + 1; i++ ) {
@@ -1650,7 +1651,7 @@ void ClientSpawn(gentity_t *ent) {
 /*freeze
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( ( g_gametype.integer == GT_FREEZE && (is_spectator( client ) /*|| ent->freezeState*/) ) || 
+	if ( ( g_gametype.integer == GT_FREEZE && is_spectator( client ) ) || 
 		( g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR ) ) {
 //freeze
 
@@ -1715,7 +1716,7 @@ freeze*/
 /*freeze
 	if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gametype.integer == GT_FREEZE && !is_spectator( client ) /*&& !ent->freezeState*/) || 
+	if ( (g_gametype.integer == GT_FREEZE && !is_spectator( client )) || 
 		(g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam != TEAM_SPECTATOR) ) {
 //freeze
 		BG_PlayerStateToEntityState( &client->ps, &ent->s, qtrue );
@@ -1777,7 +1778,7 @@ void ClientDisconnect( int clientNum ) {
 /*freeze
 		if ( level.clients[i].sess.sessionTeam == TEAM_SPECTATOR
 freeze*/
-		if ( (g_gametype.integer == GT_FREEZE && (is_spectator( &level.clients[ i ]) /*|| g_entities[i].freezeState*/) || 
+		if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ i ]) || 
 			(g_gametype.integer != GT_FREEZE && level.clients[i].sess.sessionTeam == TEAM_SPECTATOR) )
 //freeze
 			&& level.clients[i].sess.spectatorState == SPECTATOR_FOLLOW
@@ -1791,7 +1792,7 @@ freeze*/
 /*freeze
 		&& ent->client->sess.sessionTeam != TEAM_SPECTATOR ) {
 freeze*/
-		&& ((g_gametype.integer == GT_FREEZE && (!is_spectator( ent->client )) /*|| ent->freezeState*/) || (g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam != TEAM_SPECTATOR)) ) {
+		&& ((g_gametype.integer == GT_FREEZE && !is_spectator( ent->client )) || (g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam != TEAM_SPECTATOR)) ) {
 //freeze
 		tent = G_TempEntity( ent->client->ps.origin, EV_PLAYER_TELEPORT_OUT );
 		tent->s.clientNum = ent->s.clientNum;

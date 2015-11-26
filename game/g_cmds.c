@@ -1251,6 +1251,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 	if ( g_gametype.integer == GT_FREEZE && ent->freezeState ) {
 		if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
 			StopFollowing( ent );
+			ent->client->pers.stats_specnum = 0; //Lucron: specspy
 		}
 		return;
 	}
@@ -1268,6 +1269,7 @@ void Cmd_Team_f( gentity_t *ent ) {
 	}
 
 	SetTeam( ent, s, qfalse);
+	ent->client->pers.stats_specnum = 0; //Lucron: specspy
 
 	if ( oldTeam != ent->client->sess.sessionTeam )
 		ent->client->switchTeamTime = level.time + 5000;
@@ -1341,8 +1343,8 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 	int		original;
 
 //freeze
-	if ( g_gametype.integer == GT_FREEZE && (ent->client->sess.sessionTeam != TEAM_SPECTATOR && !ent->freezeState)) {
-		//if ( ent->freezeState) return;
+	if ( g_gametype.integer == GT_FREEZE) {
+		if ( ent->freezeState && !is_spectator( ent->client ) ) return;
 		if ( Set_Client( ent ) ) return;
 	}
 //freeze
@@ -1352,7 +1354,7 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 		ent->client->sess.losses++;
 	}
 	// first set them to spectator
-	if ( ent->client->sess.spectatorState == SPECTATOR_NOT && g_gametype.integer != GT_FREEZE && !ent->freezeState ) {
+	if ( ent->client->sess.spectatorState == SPECTATOR_NOT ) {
 		SetTeam( ent, "spectator", qfalse );
 	}
 
@@ -1379,25 +1381,25 @@ void Cmd_FollowCycle_f( gentity_t *ent, int dir ) {
 		// can't follow another spectator
 //freeze
 		if ( g_gametype.integer == GT_FREEZE ) {
-			if ( g_entities[ clientnum ].freezeState ) continue;
-			if ( &level.clients[ clientnum ] == ent->client ) {
-				if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
-					StopFollowing( ent );
-					ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
-					ent->client->ps.pm_time = 100;
-					return;
-				}
+		if ( &level.clients[ clientnum ] == ent->client ) {
+			if ( ent->client->sess.spectatorState == SPECTATOR_FOLLOW ) {
+				StopFollowing( ent );
+				ent->client->ps.pm_flags |= PMF_TIME_KNOCKBACK;
+				ent->client->ps.pm_time = 100;
+				return;
 			}
-		} else {
-			if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR && level.clients[ clientnum ].sess.sessionTeam != ent->client->sess.sessionTeam ) continue;
 		}
-	/*		if ( (g_gametype.integer == GT_FREEZE && is_spectator( &level.clients[ clientnum ] )) || 
-				(g_gametype.integer != GT_FREEZE && level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR) ) {
-	freeze*/
-			if ( level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR ) {
-	//freeze
-				continue;
-			}
+		if ( g_entities[ clientnum ].freezeState ) continue;
+		} else {
+		if ( ent->client->sess.sessionTeam != TEAM_SPECTATOR && level.clients[ clientnum ].sess.sessionTeam != ent->client->sess.sessionTeam ) continue;
+		}
+		if ( (g_gamemode.integer > 3 && is_spectator( &level.clients[ clientnum ] )) || 
+			(g_gamemode.integer < 4 && level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR) ) {
+/*freeze
+		if ( level.clients[ clientnum ].sess.sessionTeam == TEAM_SPECTATOR ) {
+freeze*/
+			continue;
+		}
 
 		// this is good, we can use it
 		ent->client->sess.spectatorClient = clientnum;
@@ -3062,7 +3064,7 @@ We check the status of totalReady against numPlayingClients
 */
 void ReadyCheck ( void ) {
 	
-	if ( (level.totalReady == level.numPlayingClients ||
+	if ( (level.totalReady >= level.numPlayingClients ||
 		g_allowReady.integer >= 2 && level.totalReady >= level.numPlayingClients * (g_allowReady.integer * .01)) && level.warmupTime != -1 ) {
 			if ( g_readyGrace.integer >= 2 ) {
 					trap_SendServerCommand( -1, ("cp \"All players are now ready.\n\""));
@@ -3485,6 +3487,10 @@ void ClientCommand( int clientNum ) {
 	}
 	if (Q_stricmp (cmd, "score") == 0) {
 		Cmd_Score_f (ent);
+		return;
+	}
+	if (Q_stricmp (cmd, "newscore") == 0) {
+		Cmd_NewScore_f (ent);
 		return;
 	}
 	if (Q_stricmp (cmd, "mutestatus") == 0) {

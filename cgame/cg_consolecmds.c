@@ -82,7 +82,10 @@ static void CG_ScoresDown_f( void ) {
 		// the scores are more than two seconds out of data,
 		// so request new ones
 		cg.scoresRequestTime = cg.time;
-		trap_SendClientCommand( "score" );
+		if ( cg.dbgScoreboard)
+			trap_SendClientCommand( "newscore" );
+		else
+			trap_SendClientCommand( "score" );
 
 		// leave the current scores up if they were already
 		// displayed, but if this is the first hit, clear them out
@@ -1954,7 +1957,7 @@ void CG_forceBackwards_f () {
 	cg.eventAdjustment = qtrue;
 }
 void CG_dbgScoreboard_f () {
-	cg.dbgScoreboard?(cg.dbgScoreboard=qfalse):(cg.dbgScoreboard=qtrue);
+	cg.dbgScoreboard = !cg.dbgScoreboard;
 }
 
 static void CG_Say_f ( void ) {
@@ -2148,6 +2151,7 @@ void CG_InitConsoleCommands( void ) {
 	trap_AddCommand ("lock");//FIXME: Should be made 'smarter' so it isn't sent when in spec or when teams aren't lockable.
 	trap_AddCommand ("unlock");//FIXME: Should be made 'smarter' so it isn't sent when in spec or when teams aren't lockable.
 	//trap_AddCommand ("dbgflags");
+	trap_AddCommand ("score");
 	trap_AddCommand ("motd");
 	trap_AddCommand("altConsoleSayMode");
 }

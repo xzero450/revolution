@@ -882,7 +882,8 @@ void CG_DrawActiveFrame( int serverTime, stereoFrame_t stereoView, qboolean demo
 	//Auto recording
 	/* NEED TO CLEAN THE HOSTNAME STRING */
 	//FIXME: Should do 1 date/time fetch and just use cg.time to increment it -- for all time referencing functions.
-	if ( cg_autoRecord.integer && !cgs.autoRecording && cg_autoRecord.integer && cg.warmup >= 0 && cg.warmup < 5 && cg.predictedPlayerState.pm_type != PM_INTERMISSION ) {
+	if ( cg_autoRecord.integer && !cgs.autoRecording && cg.warmup >= 0 && cg.warmup < 5 && cg.predictedPlayerState.pm_type != PM_INTERMISSION &&
+		((cgs.gametype < GT_TEAM && cg.numTeamPlayers[TEAM_FREE] > 1) || (cgs.gametype > GT_SINGLE_PLAYER && cg.numTeamPlayers[TEAM_RED] > 1 && cg.numTeamPlayers[TEAM_BLUE] > 1)) ) {
 		char	*Hn = Q_CleanString( autoFile.hostname );
 		qtime_t	qtm;
 		//Month.Day.Year--Hostname-Mapname-HH.MM

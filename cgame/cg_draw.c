@@ -801,11 +801,11 @@ static void CG_DrawStatusBar() {
 		{ 0.5f, 0.5f, 0.5f, 1.0f },     // weapon firing
 		{ 1.0f, 1.0f, 1.0f, 1.0f } };   // health > 100
 
-	if ( cgs.gametype == GT_FREEZE && Q_Isfreeze(cg.clientNum) ) {
+	/*if ( cgs.gametype == GT_FREEZE && Q_Isfreeze(cg.clientNum) ) {
 		float ww = cgs.clientinfo[cg.clientNum].armor * 2;
 		CG_FillRect(40, 432,  ww > 240 ? (240) : (ww), 12, colorCyan);
 		return;
-	}
+	}*/
 
 	if ( cg_drawStatus.integer == 0 ) {
 		return;

@@ -1693,7 +1693,11 @@ void CheckIntermissionExit( void ) {
 	}
 
 	// if nobody wants to go, clear timer
+/*freeze
 	if ( !ready ) {
+freeze*/
+	if ( (g_gametype.integer != GT_FREEZE && !ready) || (g_gametype.integer == GT_FREEZE && !ready && notReady) ) {
+//freeze
 		level.readyToExit = qfalse;
 		return;
 	}
@@ -1753,18 +1757,6 @@ can see the last frag.
 void CheckExitRules( void ) {
  	int			i;
 	gclient_t	*cl;
-
-	//freeze
-	if ( g_gametype.integer == GT_FREEZE ) {
-		//FreezeBugs
-		CheckDelay();
-	}
-	//freeze
-
-	if ( level.warmupTime ) {
-		return;
-	}
-
 	// if at the intermission, wait for all non-bots to
 	// signal ready, then go to next level
 	if ( level.intermissiontime ) {
@@ -1788,6 +1780,11 @@ void CheckExitRules( void ) {
 		return;
 	}
 
+//freeze
+	if ( g_gametype.integer == GT_FREEZE ) {
+		CheckDelay();
+	}
+//freeze
 	// check for sudden death
 	if ( ScoreIsTied() ) {
 		// always wait for sudden death
@@ -1845,7 +1842,7 @@ void CheckExitRules( void ) {
 	}
 
 
-	if ( g_gametype.integer >= GT_CTF && g_capturelimit.integer ) {
+	if ( g_gametype.integer >= GT_CTF && g_gametype.integer != GT_FREEZE && g_capturelimit.integer ) {
 //freeze - reverted 5.10.2013
 //	if ( (g_gamemode.integer < 4 && g_gametype.integer >= GT_CTF && g_capturelimit.integer) || 
 //		(g_gamemode.integer > 3 && g_gametype.integer >= GT_TEAM && g_capturelimit.integer) ) {

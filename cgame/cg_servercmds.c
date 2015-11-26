@@ -46,8 +46,8 @@ CG_NewParseScores
 =================
 */
 static void CG_NewParseScores() {
-	char string[1024];
-	byte bytez[1024];
+	char string[1400];
+	byte bytez[1400];
 	int i = 0, j = 1, position = 0, total = 0;
 
 	trap_Argv( j++, string, sizeof( string ) );
@@ -1581,7 +1581,7 @@ static void CG_ServerCommand( void ) {
 	}
 
 	if ( !strcmp( cmd, "s1s" ) ) {
-		CG_NewParseScores((char *)cmd);
+		CG_NewParseScores(/*(char *)cmd*/);
 		return;
 	}
 

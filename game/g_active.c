@@ -985,7 +985,7 @@ void ClientThink_real( gentity_t *ent, int forced ) {
 /*freeze
 	if ( client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	if ( (g_gametype.integer == GT_FREEZE && ent->freezeState) ||  client->sess.sessionTeam == TEAM_SPECTATOR ) {
+	if ( (g_gametype.integer == GT_FREEZE && is_spectator( client )) || (g_gametype.integer != GT_FREEZE && client->sess.sessionTeam == TEAM_SPECTATOR) ) {
 //freeze
 		if ( client->sess.spectatorState == SPECTATOR_SCOREBOARD ) {
 			return;
@@ -1789,13 +1789,14 @@ void ClientEndFrame( gentity_t *ent ) {
 /*freeze
 	if ( ent->client->sess.sessionTeam == TEAM_SPECTATOR ) {
 freeze*/
-	ent->client->pers.stats_specnum = 0;
 	if ( ( g_gametype.integer == GT_FREEZE && is_spectator( ent->client ) ) || 
 		( g_gametype.integer != GT_FREEZE && ent->client->sess.sessionTeam == TEAM_SPECTATOR )) {
 //freeze
 		SpectatorClientEndFrame( ent );
 		return;
 	}
+	
+	//ent->client->pers.stats_specnum = 0; //Lucron: specspy
 
 	pers = &ent->client->pers;
 
